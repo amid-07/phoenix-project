@@ -1,0 +1,151 @@
+// Fichier: backend/prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// --------------------------------------
+// 1. GESTION UTILISATEURS & ROLES
+// --------------------------------------
+
+model User {
+  id             String    @id @default(uuid())
+  email          String    @unique
+  password       String
+  username       String?
+  
+  // Rôle : USER (Patient) ou COACH (Expert)
+  role           Role      @default(USER)
+
+  // -- Données d'Addiction --
+  addictionType  AddictionType @default(SMOKING)
+  dailyCost      Float?        // Coût par jour (en €)
+  startDate      DateTime  @default(now()) // Date de début de sobriété
+  moneySaved     Float     @default(0)
+  currentStreak  Int       @default(0)     // Jours consécutifs
+
+  // -- Relations App --
+  journals       Journal[]
+  dailyPlans     DailyPlan[]
+  badges         UserBadge[]
+
+  // -- Relations Marketplace --
+  // Si c'est un coach, il a un profil pro détaillé
+  professionalProfile ProfessionalProfile?
+  
+  // Les RDV pris en tant que patient
+  bookingsMade        Booking[]  @relation("PatientBookings")
+  
+  // Les RDV reçus en tant que coach
+  bookingsReceived    Booking[]  @relation("CoachBookings")
+
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+// --------------------------------------
+// 2. MARKETPLACE (EXPERTS)
+// --------------------------------------
+
+model ProfessionalProfile {
+  id          String   @id @default(uuid())
+  title       String   // Ex: "Psychologue Clinicien"
+  bio         String   // Description longue
+  specialties String[] // Ex: ["Jeu", "Alcool", "Tabac"]
+  hourlyRate  Float    // Prix de la séance
+  rating      Float    @default(5.0) // Note moyenne
+  
+  // Lien avec l'utilisateur (le coach)
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id])
+}
+
+model Booking {
+  id        String   @id @default(uuid())
+  date      DateTime // Date et heure du RDV
+  status    String   @default("PENDING") // PENDING, CONFIRMED, CANCELLED, DONE
+  
+  // Qui réserve ? (Le Patient)
+  patientId String
+  patient   User     @relation("PatientBookings", fields: [patientId], references: [id])
+  
+  // Qui est réservé ? (Le Coach)
+  coachId   String
+  coach     User     @relation("CoachBookings", fields: [coachId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+// --------------------------------------
+// 3. FONCTIONNALITÉS APP (IA & TRACKING)
+// --------------------------------------
+
+model Journal {
+  id        String   @id @default(uuid())
+  content   String
+  mood      Int      // Note de 1 à 10
+  
+  createdAt DateTime @default(now())
+  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model DailyPlan {
+  id        String   @id @default(uuid())
+  date      DateTime @default(now())
+  tasks     Json     // Liste des tâches générées par l'IA
+  isCompleted Boolean @default(false)
+  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+// --------------------------------------
+// 4. GAMIFICATION
+// --------------------------------------
+
+model Badge {
+  id          String      @id @default(uuid())
+  name        String
+  description String
+  iconName    String
+  requiredDays Int
+  
+  users       UserBadge[]
+}
+
+model UserBadge {
+  id        String   @id @default(uuid())
+  earnedAt  DateTime @default(now())
+  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  
+  badgeId   String
+  badge     Badge    @relation(fields: [badgeId], references: [id])
+}
+
+// --------------------------------------
+// 5. LISTES (ENUMS)
+// --------------------------------------
+
+enum Role {
+  USER
+  COACH
+  ADMIN
+}
+
+enum AddictionType {
+  GAMBLING
+  DRUGS
+  ALCOHOL
+  PHONE
+  SMOKING
+  OTHER
+}
