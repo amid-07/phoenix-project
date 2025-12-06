@@ -8,14 +8,14 @@ export default function CoachDashboardPage() {
   const [loading, setLoading] = useState(true);
 
   // ⚠️ LOCALHOST
-  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
   const fetchRequests = async () => {
     try {
       const userId = localStorage.getItem('userId');
-      if (!userId) return;
-      
-      const response = await fetch(`${API_URL}/bookings/coach/${userId}`);
+      const response = await fetch(`${API_URL}/bookings/coach/${userId}`, {
+        headers: { 'ngrok-skip-browser-warning': 'true' } // <--- FIX 1
+      });
       const data = await response.json();
       
       // Trier : En attente d'abord, puis par date
@@ -41,7 +41,10 @@ export default function CoachDashboardPage() {
     try {
       await fetch(`${API_URL}/bookings/${bookingId}/status`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+            'Content-Type': 'application/json',
+            'ngrok-skip-browser-warning': 'true' // <--- FIX 2
+        },
         body: JSON.stringify({ status: action })
       });
       fetchRequests();

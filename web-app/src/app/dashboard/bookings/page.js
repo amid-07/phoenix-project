@@ -7,13 +7,15 @@ export default function BookingsPage() {
   const [loading, setLoading] = useState(true);
 
   // ⚠️ LOCALHOST
-  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
   useEffect(() => {
     const userId = localStorage.getItem('userId');
     if (!userId) return;
 
-    fetch(`${API_URL}/bookings/patient/${userId}`)
+    fetch(`${API_URL}/bookings/patient/${userId}`, {
+      headers: { 'ngrok-skip-browser-warning': 'true' } // <--- FIX
+    })
       .then(res => res.json())
       .then(data => {
         const sorted = data.sort((a, b) => new Date(b.date) - new Date(a.date));

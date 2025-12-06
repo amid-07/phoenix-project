@@ -7,7 +7,7 @@ export default function JournalPage() {
   const [mood, setMood] = useState(3);
   
   // ⚠️ LOCALHOST
-  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
   const saveJournal = async () => {
     const userId = localStorage.getItem('userId');
@@ -15,7 +15,10 @@ export default function JournalPage() {
     
     await fetch(`${API_URL}/journal`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': 'true' // <--- FIX
+    },
       body: JSON.stringify({ userId, content, mood })
     });
     alert("Pensée enregistrée avec succès.");

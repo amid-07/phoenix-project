@@ -11,8 +11,9 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  // ⚠️ LOCALHOST
-  const API_URL = process.env.NEXT_PUBLIC_API_URL; 
+  // Sur Vercel, ça prendra la variable d'environnement.
+  // En local, ça prendra localhost:3000.
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -22,8 +23,15 @@ export default function LoginPage() {
     try {
       const response = await fetch(`${API_URL}/users/login`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.toLowerCase(), password }),
+        headers: { 
+          'Content-Type': 'application/json',
+          // 👇 C'EST CETTE LIGNE QUI DÉBLOQUE VERCEL/NGROK 👇
+          'ngrok-skip-browser-warning': 'true' 
+        },
+        body: JSON.stringify({ 
+          email: email.toLowerCase(), 
+          password: password 
+        }),
       });
 
       const data = await response.json();
@@ -33,37 +41,41 @@ export default function LoginPage() {
         localStorage.setItem('username', data.username);
         router.push('/dashboard');
       } else {
-        setError(data.message || "Identifiants incorrects.");
+        setError(data.message || "Email ou mot de passe incorrect.");
       }
     } catch (err) {
-      setError("Impossible de contacter le serveur.");
+      console.error(err);
+      setError("Impossible de contacter le serveur. Vérifiez votre connexion.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4 text-primary">
+    <div className="flex min-h-screen items-center justify-center bg-[#2F3A4A] p-4 text-[#EAE6DA]">
       
-      <div className="w-full max-w-md bg-surface p-8 rounded-2xl shadow-2xl border border-white/10">
+      <div className="w-full max-w-md bg-[#59647A] p-8 rounded-2xl shadow-2xl border border-white/10">
         
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-primary mb-2 tracking-widest">TAFSUT</h1>
-          <p className="text-primary/70">Retrouvez la lumière.</p>
+          <div className="w-16 h-16 bg-[#EAE6DA] rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-[#EAE6DA]/20">
+            <span className="text-3xl font-bold text-[#2F3A4A]">T</span>
+          </div>
+          <h1 className="text-3xl font-bold text-[#EAE6DA] mb-2">TAFUT</h1>
+          <p className="text-[#EAE6DA]/70">Retrouvez la lumière.</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-6">
           
           <div>
-            <label className="block text-sm font-medium text-primary/80 mb-2">Email</label>
+            <label className="block text-sm font-medium text-[#EAE6DA]/80 mb-2">Email</label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-primary/50">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#EAE6DA]/50">
                 <Mail size={20} />
               </div>
               <input 
                 type="email" 
                 placeholder="exemple@email.com"
-                className="w-full pl-10 p-3 rounded-xl bg-background border border-white/10 text-primary focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition placeholder-primary/30"
+                className="w-full pl-10 p-3 rounded-xl bg-[#2F3A4A] border border-white/10 text-[#EAE6DA] focus:outline-none focus:border-[#EAE6DA] focus:ring-1 focus:ring-[#EAE6DA] transition placeholder-[#EAE6DA]/30"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -72,15 +84,15 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-primary/80 mb-2">Mot de passe</label>
+            <label className="block text-sm font-medium text-[#EAE6DA]/80 mb-2">Mot de passe</label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-primary/50">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#EAE6DA]/50">
                 <Lock size={20} />
               </div>
               <input 
                 type="password" 
                 placeholder="••••••••"
-                className="w-full pl-10 p-3 rounded-xl bg-background border border-white/10 text-primary focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition placeholder-primary/30"
+                className="w-full pl-10 p-3 rounded-xl bg-[#2F3A4A] border border-white/10 text-[#EAE6DA] focus:outline-none focus:border-[#EAE6DA] focus:ring-1 focus:ring-[#EAE6DA] transition placeholder-[#EAE6DA]/30"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -89,7 +101,7 @@ export default function LoginPage() {
           </div>
 
           {error && (
-            <div className="bg-danger/10 border border-danger/20 text-danger p-3 rounded-lg text-sm text-center">
+            <div className="bg-[#FF6B6B]/10 border border-[#FF6B6B]/20 text-[#FF6B6B] p-3 rounded-lg text-sm text-center">
               {error}
             </div>
           )}
@@ -97,14 +109,14 @@ export default function LoginPage() {
           <button 
             type="submit" 
             disabled={loading}
-            className="w-full bg-primary hover:bg-white text-background font-bold py-3.5 rounded-xl transition duration-200 flex items-center justify-center gap-2 shadow-lg disabled:opacity-50"
+            className="w-full bg-[#EAE6DA] hover:bg-white text-[#2F3A4A] font-bold py-3.5 rounded-xl transition duration-200 flex items-center justify-center gap-2 shadow-lg disabled:opacity-50"
           >
             {loading ? <Loader2 size={20} className="animate-spin" /> : <>Se connecter <ArrowRight size={20} /></>}
           </button>
 
         </form>
 
-        <p className="mt-8 text-center text-sm text-primary/60">
+        <p className="mt-8 text-center text-sm text-[#EAE6DA]/60">
           Pas encore membre ?{' '}
           <span className="text-white font-bold cursor-pointer hover:underline" onClick={() => alert("Utilisez l'app mobile pour vous inscrire.")}>
             S'inscrire

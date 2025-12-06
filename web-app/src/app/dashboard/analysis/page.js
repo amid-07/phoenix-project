@@ -7,16 +7,17 @@ export default function AnalysisPage() {
   const [loading, setLoading] = useState(false);
 
   // ⚠️ LOCALHOST pour le Web local
-  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
   const generateAnalysis = async () => {
     setLoading(true);
     try {
       const userId = localStorage.getItem('userId');
-      const response = await fetch(`${API_URL}/ai-coach/analysis/${userId}`);
+      const response = await fetch(`${API_URL}/ai-coach/analysis/${userId}`, {
+        headers: { 'ngrok-skip-browser-warning': 'true' } // <--- FIX
+      });
       
       if (!response.ok) throw new Error("Erreur serveur");
-      
       const jsonData = await response.json();
       setData(jsonData);
     } catch (error) {

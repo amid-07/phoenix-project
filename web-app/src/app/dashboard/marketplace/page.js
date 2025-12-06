@@ -9,24 +9,19 @@ export default function MarketplacePage() {
   const [error, setError] = useState(null);
   const router = useRouter();
 
-  // ⚠️ LOCALHOST
-  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+  // URL dynamique
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
   useEffect(() => {
-    fetch(`${API_URL}/marketplace/coaches`)
-      .then(res => {
-        if (!res.ok) throw new Error("Erreur réseau");
-        return res.json();
-      })
+    fetch(`${API_URL}/marketplace/coaches`, {
+      headers: { 'ngrok-skip-browser-warning': 'true' } // <--- FIX
+    })
+      .then(res => res.json())
       .then(data => {
         setCoaches(data);
         setLoading(false);
       })
-      .catch(err => {
-        console.error(err);
-        setError("Impossible de charger les experts.");
-        setLoading(false);
-      });
+      .catch(err => setLoading(false));
   }, []);
 
   return (

@@ -11,7 +11,7 @@ export default function ChatPage() {
   const messagesEndRef = useRef(null);
 
   // ⚠️ UTILISEZ LOCALHOST POUR LE WEB
-  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -29,7 +29,10 @@ export default function ChatPage() {
     try {
       const response = await fetch(`${API_URL}/ai-coach/chat`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+            'Content-Type': 'application/json',
+            'ngrok-skip-browser-warning': 'true' // <--- FIX
+        },
         body: JSON.stringify({ message: userMsg.text })
       });
       

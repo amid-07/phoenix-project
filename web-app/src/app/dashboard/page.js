@@ -19,39 +19,45 @@ import {
 } from 'lucide-react';
 
 export default function Dashboard() {
-  // États
-  const [stats, setStats] = useState(null); // Null au début pour gérer le chargement
+  const [stats, setStats] = useState(null);
   const [userRole, setUserRole] = useState('USER');
   const [userName, setUserName] = useState('Utilisateur');
   const router = useRouter();
 
-  // ⚠️ API URL : Utilisez localhost pour le Web local pour éviter les erreurs CORS/Ngrok
-  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+  // URL Dynamique (Prend celle de Vercel OU Localhost)
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
-  // --- 1. CHARGEMENT ---
   useEffect(() => {
     const id = localStorage.getItem('userId');
     const name = localStorage.getItem('username');
     
-    // Sécurité : Si pas connecté, retour à l'accueil
     if (!id) {
       router.push('/'); 
       return;
     }
     
-    setUserName(name || 'Membre TAFSUT');
+    setUserName(name || 'Membre TAFUT');
 
-    // Récupération des données
-    fetch(`${API_URL}/users/${id}/stats`)
+    // Récupération des stats avec le Header spécial Ngrok
+    fetch(`${API_URL}/users/${id}/stats`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        // 👇 INDISPENSABLE POUR VERCEL + NGROK 👇
+        'ngrok-skip-browser-warning': 'true'
+      }
+    })
       .then(res => res.json())
       .then(data => {
         setStats(data);
         if (data.role) setUserRole(data.role);
       })
-      .catch(err => console.error("Erreur connexion:", err));
+      .catch(err => {
+        console.error("Erreur connexion:", err);
+        // On ne déconnecte pas brutalement pour éviter les boucles, mais on log l'erreur
+      });
   }, [router]);
 
-  // --- 2. DÉCONNEXION ---
   const handleLogout = () => {
     if (confirm("Voulez-vous vraiment vous déconnecter ?")) {
       localStorage.clear();
@@ -59,9 +65,6 @@ export default function Dashboard() {
     }
   };
 
-  // --- COMPOSANTS UI INTERNES ---
-  
-  // Bouton du menu latéral
   const SidebarItem = ({ icon: Icon, label, onClick, active, highlight }) => (
     <button 
       onClick={onClick}
@@ -78,7 +81,6 @@ export default function Dashboard() {
     </button>
   );
 
-  // Carte d'accès rapide
   const QuickAccessCard = ({ icon: Icon, title, sub, color, onClick }) => (
     <div 
       onClick={onClick} 
@@ -95,29 +97,26 @@ export default function Dashboard() {
     </div>
   );
 
-  // Si chargement
   if (!stats) return <div className="min-h-screen bg-[#2F3A4A] text-[#EAE6DA] flex items-center justify-center">Chargement de votre espace...</div>;
 
   return (
     <div className="flex h-screen bg-[#2F3A4A] text-[#EAE6DA] font-sans overflow-hidden">
       
-      {/* --- SIDEBAR (Menu Gauche) --- */}
+      {/* SIDEBAR */}
       <aside className="w-64 bg-[#59647A] border-r border-white/5 p-6 flex flex-col justify-between hidden md:flex">
         <div>
-          <h1 className="text-3xl font-bold mb-10 text-[#EAE6DA] tracking-widest text-center">TAFSUT</h1>
+          <h1 className="text-3xl font-bold mb-10 text-[#EAE6DA] tracking-widest text-center">TAFUT</h1>
           
           <nav className="space-y-2">
             <SidebarItem icon={LayoutDashboard} label="Tableau de bord" active onClick={() => {}} />
             
             {userRole === 'COACH' ? (
               <>
-                {/* Menu Spécial Coach */}
                 <SidebarItem icon={Briefcase} label="Espace Pro" highlight onClick={() => router.push('/dashboard/coach')} />
                 <SidebarItem icon={Users} label="Annuaire Experts" onClick={() => router.push('/dashboard/marketplace')} />
               </>
             ) : (
               <>
-                {/* Menu Patient */}
                 <SidebarItem icon={BookOpen} label="Journal" onClick={() => router.push('/dashboard/journal')} />
                 <SidebarItem icon={Users} label="Experts" onClick={() => router.push('/dashboard/marketplace')} />
                 <SidebarItem icon={Calendar} label="Mes RDV" onClick={() => router.push('/dashboard/bookings')} />
@@ -137,10 +136,9 @@ export default function Dashboard() {
         </button>
       </aside>
 
-      {/* --- CONTENU PRINCIPAL --- */}
+      {/* CONTENU PRINCIPAL */}
       <main className="flex-1 overflow-y-auto p-8">
         
-        {/* En-tête */}
         <header className="flex justify-between items-center mb-8">
           <div>
             <h2 className="text-3xl font-bold text-[#EAE6DA]">Bonjour, {stats.username}</h2>
@@ -156,24 +154,19 @@ export default function Dashboard() {
         {/* --- VUE COACH --- */}
         {userRole === 'COACH' ? (
           <>
-            {/* KPI Coach */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              
-              {/* Revenus */}
               <div className="bg-[#59647A] p-6 rounded-2xl border border-[#FFD93D]/30 shadow-lg flex flex-col justify-center items-center">
                  <div className="p-3 bg-[#FFD93D]/10 rounded-full mb-3 text-[#FFD93D]"><DollarSign size={32} /></div>
                  <h3 className="text-4xl font-bold text-[#FFD93D]">{stats.earnings || 0} €</h3>
                  <p className="text-sm text-[#EAE6DA]/60 mt-1">Revenus Totaux</p>
               </div>
 
-              {/* Demandes */}
               <div className="bg-[#59647A] p-6 rounded-2xl border border-white/5 shadow-lg flex flex-col justify-center items-center">
                  <div className="p-3 bg-[#EAE6DA]/10 rounded-full mb-3 text-[#EAE6DA]"><ClipboardList size={32} /></div>
                  <h3 className="text-4xl font-bold text-white">{stats.reservationsCount || 0}</h3>
                  <p className="text-sm text-[#EAE6DA]/60 mt-1">Demandes reçues</p>
               </div>
 
-              {/* Tarif */}
               <div className="bg-[#59647A] p-6 rounded-2xl border border-white/5 shadow-lg flex flex-col justify-center items-center">
                  <div className="p-3 bg-[#4ECDC4]/10 rounded-full mb-3 text-[#4ECDC4]"><Users size={32} /></div>
                  <h3 className="text-4xl font-bold text-[#4ECDC4]">{stats.hourlyRate} €/h</h3>
@@ -181,7 +174,6 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Accès Rapide Coach */}
             <h3 className="text-xl font-bold mb-4 mt-8 text-[#EAE6DA] flex items-center gap-2"><Zap size={20}/> Gestion</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                <QuickAccessCard icon={Briefcase} title="Espace Professionnel" sub="Gérer et confirmer les RDV" color="#FFD93D" onClick={() => router.push('/dashboard/coach')} />
@@ -189,11 +181,9 @@ export default function Dashboard() {
             </div>
           </>
         ) : (
-          
           /* --- VUE PATIENT --- */
           <>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              {/* Carte Jours */}
               <div className="bg-[#59647A] p-6 rounded-2xl shadow-xl text-[#EAE6DA] border-2 border-[#EAE6DA]/10 relative overflow-hidden">
                 <p className="text-[#EAE6DA]/60 font-medium uppercase tracking-wider text-sm">Jours de lumière</p>
                 <h3 className="text-6xl font-thin mt-2 text-white">{stats.days}</h3>
@@ -202,14 +192,12 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Carte Argent */}
               <div className="bg-[#59647A] p-6 rounded-2xl border border-white/5 shadow-lg flex flex-col justify-center items-center">
                 <div className="p-3 bg-[#4ECDC4]/10 rounded-full mb-3 text-[#4ECDC4]"><span className="text-3xl">💰</span></div>
                 <h3 className="text-4xl font-bold text-[#4ECDC4]">{stats.money} €</h3>
                 <p className="text-sm text-[#EAE6DA]/60 mt-1">Économisés</p>
               </div>
 
-              {/* Carte Badges */}
               <div className="bg-[#59647A] p-6 rounded-2xl border border-white/5 shadow-lg">
                  <div className="flex items-center gap-2 mb-4 text-[#FFD93D] font-bold"><Trophy size={20} /> Succès</div>
                  <div className="flex flex-wrap gap-2">
@@ -220,15 +208,12 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Accès Rapide Patient */}
             <h3 className="text-xl font-bold mb-4 mt-8 text-[#EAE6DA] flex items-center gap-2"><Zap size={20}/> Accès Rapide</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                <QuickAccessCard icon={MessageCircle} title="Coach IA" sub="Discussion 24/7" color="#EAE6DA" onClick={() => router.push('/dashboard/chat')} />
                <QuickAccessCard icon={Users} title="Experts" sub="Prendre RDV" color="#4ECDC4" onClick={() => router.push('/dashboard/marketplace')} />
                <QuickAccessCard icon={BookOpen} title="Journal" sub="Vos pensées" color="#FFD93D" onClick={() => router.push('/dashboard/journal')} />
                <QuickAccessCard icon={AlertTriangle} title="Urgence" sub="Aide immédiate" color="#FF6B6B" onClick={() => router.push('/dashboard/crisis')} />
-               
-               {/* Nouveau bouton pour voir ses RDV */}
                <QuickAccessCard icon={Calendar} title="Mes RDV" sub="Suivi demandes" color="#4ECDC4" onClick={() => router.push('/dashboard/bookings')} />
             </div>
           </>
