@@ -46,13 +46,25 @@ export declare class UsersService {
         days: number;
         money: number;
         badges: any[];
-        username?: undefined;
         role?: undefined;
+        username?: undefined;
+        reservationsCount?: undefined;
+        earnings?: undefined;
+        hourlyRate?: undefined;
     } | {
+        role: string;
+        username: string;
+        reservationsCount: number;
+        earnings: number;
+        hourlyRate: number;
+        days?: undefined;
+        money?: undefined;
+        badges?: undefined;
+    } | {
+        role: string;
         days: number;
         money: number;
         username: string;
-        role: import(".prisma/client").$Enums.Role;
         badges: {
             id: string;
             name: string;
@@ -60,6 +72,9 @@ export declare class UsersService {
             iconName: string;
             requiredDays: number;
         }[];
+        reservationsCount?: undefined;
+        earnings?: undefined;
+        hourlyRate?: undefined;
     }>;
     private checkAndAwardBadges;
 }

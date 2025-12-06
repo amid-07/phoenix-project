@@ -11,8 +11,14 @@ const common_1 = require("@nestjs/common");
 const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 let BookingsService = class BookingsService {
-    async createBooking(patientId, coachId, dateString) {
-        console.log(`📅 Nouvelle réservation pour le : ${dateString}`);
+    async createBooking(patientId, coachId, dateString, availabilityId) {
+        console.log(`📅 Réservation demandée : Patient ${patientId} -> Coach ${coachId} le ${dateString}`);
+        if (availabilityId) {
+            await prisma.availability.update({
+                where: { id: availabilityId },
+                data: { isBooked: true }
+            });
+        }
         return await prisma.booking.create({
             data: {
                 patientId: patientId,
@@ -25,7 +31,10 @@ let BookingsService = class BookingsService {
     async getMyBookings(userId) {
         return await prisma.booking.findMany({
             where: { patientId: userId },
-            include: { coach: { include: { professionalProfile: true } } }
+            include: {
+                coach: { include: { professionalProfile: true } }
+            },
+            orderBy: { date: 'desc' }
         });
     }
     async getCoachBookings(coachId) {

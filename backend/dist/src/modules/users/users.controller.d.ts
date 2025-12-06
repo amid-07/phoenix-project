@@ -38,13 +38,25 @@ export declare class UsersController {
         days: number;
         money: number;
         badges: any[];
-        username?: undefined;
         role?: undefined;
+        username?: undefined;
+        reservationsCount?: undefined;
+        earnings?: undefined;
+        hourlyRate?: undefined;
     } | {
+        role: string;
+        username: string;
+        reservationsCount: number;
+        earnings: number;
+        hourlyRate: number;
+        days?: undefined;
+        money?: undefined;
+        badges?: undefined;
+    } | {
+        role: string;
         days: number;
         money: number;
         username: string;
-        role: import(".prisma/client").$Enums.Role;
         badges: {
             id: string;
             name: string;
@@ -52,6 +64,9 @@ export declare class UsersController {
             iconName: string;
             requiredDays: number;
         }[];
+        reservationsCount?: undefined;
+        earnings?: undefined;
+        hourlyRate?: undefined;
     }>;
     relapse(id: string): Promise<{
         id: string;

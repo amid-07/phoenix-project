@@ -26,49 +26,76 @@ async function main() {
         });
     }
     console.log('👨‍⚕️ Création des coachs...');
-    const emailSarah = 'sarah.psy@test.com';
-    const existingSarah = await prisma.user.findUnique({ where: { email: emailSarah } });
-    if (!existingSarah) {
-        await prisma.user.create({
-            data: {
-                email: emailSarah,
-                password: 'pass',
-                username: 'Dr. Sarah Connor',
-                role: 'COACH',
-                professionalProfile: {
-                    create: {
-                        title: 'Psychologue TCC',
-                        bio: 'Spécialiste des addictions comportementales (Jeu, Internet). 10 ans d\'expérience en clinique.',
-                        hourlyRate: 60,
-                        specialties: ['Jeu', 'Ecran'],
-                        rating: 4.9
+    const coachesData = [
+        {
+            email: 'sarah.psy@test.com',
+            username: 'Dr. Sarah Connor',
+            role: 'COACH',
+            profile: {
+                title: 'Psychologue TCC',
+                bio: 'Spécialiste des addictions comportementales (Jeu, Internet). 10 ans d\'expérience en clinique.',
+                hourlyRate: 60,
+                specialties: ['Jeu', 'Ecran'],
+                rating: 4.9
+            }
+        },
+        {
+            email: 'marc.coach@test.com',
+            username: 'Marc Levi',
+            role: 'COACH',
+            profile: {
+                title: 'Coach de vie & Sport',
+                bio: 'Je vous aide à remplacer vos mauvaises habitudes par le sport et la discipline mentale.',
+                hourlyRate: 45,
+                specialties: ['Drogue', 'Tabac'],
+                rating: 4.7
+            }
+        }
+    ];
+    for (const c of coachesData) {
+        const existing = await prisma.user.findUnique({ where: { email: c.email } });
+        if (!existing) {
+            await prisma.user.create({
+                data: {
+                    email: c.email,
+                    password: 'pass',
+                    username: c.username,
+                    role: 'COACH',
+                    professionalProfile: {
+                        create: c.profile
                     }
                 }
-            }
-        });
+            });
+        }
     }
-    const emailMarc = 'marc.coach@test.com';
-    const existingMarc = await prisma.user.findUnique({ where: { email: emailMarc } });
-    if (!existingMarc) {
-        await prisma.user.create({
-            data: {
-                email: emailMarc,
-                password: 'pass',
-                username: 'Marc Levi',
-                role: 'COACH',
-                professionalProfile: {
-                    create: {
-                        title: 'Coach de vie & Sport',
-                        bio: 'Je vous aide à remplacer vos mauvaises habitudes par le sport et la discipline mentale.',
-                        hourlyRate: 45,
-                        specialties: ['Drogue', 'Tabac'],
-                        rating: 4.7
+    console.log('📅 Génération des créneaux horaires...');
+    const profiles = await prisma.professionalProfile.findMany();
+    for (const profile of profiles) {
+        await prisma.availability.deleteMany({ where: { profileId: profile.id } });
+        for (let i = 1; i <= 7; i++) {
+            const today = new Date();
+            const date1 = new Date(today);
+            date1.setDate(today.getDate() + i);
+            date1.setHours(10, 0, 0, 0);
+            const date2 = new Date(today);
+            date2.setDate(today.getDate() + i);
+            date2.setHours(14, 0, 0, 0);
+            const date3 = new Date(today);
+            date3.setDate(today.getDate() + i);
+            date3.setHours(16, 0, 0, 0);
+            const slots = [date1, date2, date3];
+            for (const slotDate of slots) {
+                await prisma.availability.create({
+                    data: {
+                        profileId: profile.id,
+                        date: slotDate,
+                        isBooked: false
                     }
-                }
+                });
             }
-        });
+        }
     }
-    console.log('✅ Base de données initialisée avec succès !');
+    console.log('✅ Base de données prête ! (Badges + Coachs + Créneaux)');
 }
 main()
     .catch((e) => {

@@ -72,9 +72,29 @@ let UsersService = class UsersService {
         });
     }
     async getUserStats(userId) {
-        const user = await prisma.user.findUnique({ where: { id: userId } });
-        if (!user) {
+        var _a;
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            include: { professionalProfile: true }
+        });
+        if (!user)
             return { days: 0, money: 0, badges: [] };
+        if (user.role === 'COACH') {
+            const reservationsCount = await prisma.booking.count({
+                where: { coachId: userId }
+            });
+            const confirmedBookings = await prisma.booking.count({
+                where: { coachId: userId, status: 'CONFIRMED' }
+            });
+            const hourlyRate = ((_a = user.professionalProfile) === null || _a === void 0 ? void 0 : _a.hourlyRate) || 0;
+            const totalEarnings = confirmedBookings * hourlyRate;
+            return {
+                role: 'COACH',
+                username: user.username,
+                reservationsCount: reservationsCount,
+                earnings: totalEarnings,
+                hourlyRate: hourlyRate
+            };
         }
         const now = new Date();
         const diffTime = Math.abs(now.getTime() - user.startDate.getTime());
@@ -86,10 +106,10 @@ let UsersService = class UsersService {
             include: { badge: true }
         });
         return {
+            role: 'USER',
             days: diffDays,
             money: Math.floor(money),
             username: user.username,
-            role: user.role,
             badges: unlockedBadges.map(ub => ub.badge)
         };
     }

@@ -29,20 +29,23 @@ model User {
   moneySaved     Float     @default(0)
   currentStreak  Int       @default(0)     // Jours consécutifs
 
-  // -- Relations App --
+  // -- Relations App (Interne) --
   journals       Journal[]
   dailyPlans     DailyPlan[]
   badges         UserBadge[]
 
-  // -- Relations Marketplace --
-  // Si c'est un coach, il a un profil pro détaillé
+  // -- Relations Marketplace (Externe) --
+  // 1. Si c'est un coach, il a un profil pro
   professionalProfile ProfessionalProfile?
   
-  // Les RDV pris en tant que patient
+  // 2. Les RDV pris en tant que patient
   bookingsMade        Booking[]  @relation("PatientBookings")
   
-  // Les RDV reçus en tant que coach
+  // 3. Les RDV reçus en tant que coach
   bookingsReceived    Booking[]  @relation("CoachBookings")
+
+  // 4. Les avis écrits par cet utilisateur (C'est la ligne qui manquait !)
+  writtenReviews      Review[]
 
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
@@ -63,12 +66,43 @@ model ProfessionalProfile {
   // Lien avec l'utilisateur (le coach)
   userId      String   @unique
   user        User     @relation(fields: [userId], references: [id])
+
+  // NOUVEAU : Ses créneaux et ses avis reçus
+  availabilities Availability[]
+  reviews        Review[]
 }
 
+// Gestion des Créneaux Horaires
+model Availability {
+  id        String   @id @default(uuid())
+  date      DateTime // Date et Heure précise du créneau
+  isBooked  Boolean  @default(false)
+  
+  profileId String
+  profile   ProfessionalProfile @relation(fields: [profileId], references: [id])
+}
+
+// Gestion des Avis et Notes
+model Review {
+  id        String   @id @default(uuid())
+  rating    Int      // Note de 1 à 5
+  comment   String   // Le texte de l'avis
+  createdAt DateTime @default(now())
+
+  // Quel coach est noté ?
+  profileId String
+  profile   ProfessionalProfile @relation(fields: [profileId], references: [id])
+
+  // Qui a écrit l'avis ?
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+}
+
+// Gestion des Réservations (RDV validés)
 model Booking {
   id        String   @id @default(uuid())
   date      DateTime // Date et heure du RDV
-  status    String   @default("PENDING") // PENDING, CONFIRMED, CANCELLED, DONE
+  status    String   @default("PENDING") // PENDING, CONFIRMED, CANCELLED
   
   // Qui réserve ? (Le Patient)
   patientId String
@@ -89,7 +123,6 @@ model Journal {
   id        String   @id @default(uuid())
   content   String
   mood      Int      // Note de 1 à 10
-  
   createdAt DateTime @default(now())
   
   userId    String
@@ -132,7 +165,7 @@ model UserBadge {
 }
 
 // --------------------------------------
-// 5. LISTES (ENUMS)
+// 5. ENUMS
 // --------------------------------------
 
 enum Role {

@@ -8,7 +8,8 @@ export class BookingsController {
   @Post()
   async create(@Body() body: any) {
     // On passe la date reçue du téléphone
-    return this.bookingsService.createBooking(body.patientId, body.coachId, body.date);
+    return this.bookingsService.createBooking(body.patientId, body.coachId, body.date, 
+      body.availabilityId);
   }
 
   @Get('patient/:id')

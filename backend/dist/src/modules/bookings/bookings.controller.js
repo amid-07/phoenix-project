@@ -20,7 +20,7 @@ let BookingsController = class BookingsController {
         this.bookingsService = bookingsService;
     }
     async create(body) {
-        return this.bookingsService.createBooking(body.patientId, body.coachId, body.date);
+        return this.bookingsService.createBooking(body.patientId, body.coachId, body.date, body.availabilityId);
     }
     async getMy(id) {
         return this.bookingsService.getMyBookings(id);

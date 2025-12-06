@@ -14,7 +14,48 @@ let MarketplaceService = class MarketplaceService {
     async getAllCoaches() {
         return await prisma.user.findMany({
             where: { role: 'COACH' },
-            include: { professionalProfile: true },
+            include: {
+                professionalProfile: true
+            },
+        });
+    }
+    async getCoachDetails(coachUserId) {
+        const coach = await prisma.user.findUnique({
+            where: { id: coachUserId },
+            include: {
+                professionalProfile: {
+                    include: {
+                        availabilities: {
+                            where: { isBooked: false },
+                            orderBy: { date: 'asc' }
+                        },
+                        reviews: {
+                            orderBy: { createdAt: 'desc' },
+                            include: {
+                                author: { select: { username: true } }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        return coach;
+    }
+    async addReview(userId, coachId, rating, comment) {
+        const coach = await prisma.user.findUnique({
+            where: { id: coachId },
+            include: { professionalProfile: true }
+        });
+        if (!coach || !coach.professionalProfile) {
+            throw new Error("Coach introuvable ou sans profil pro");
+        }
+        return await prisma.review.create({
+            data: {
+                rating: rating,
+                comment: comment,
+                authorId: userId,
+                profileId: coach.professionalProfile.id
+            }
         });
     }
 };

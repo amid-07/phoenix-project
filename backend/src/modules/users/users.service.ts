@@ -100,35 +100,59 @@ export class UsersService {
   // ----------------------------------------------------
   // 5. RÉCUPÉRATION DES STATS & BADGES (Le cœur du Dashboard)
   // ----------------------------------------------------
+  // ...
+
   async getUserStats(userId: string) {
-    const user = await prisma.user.findUnique({ where: { id: userId } });
+    const user = await prisma.user.findUnique({ 
+      where: { id: userId },
+      include: { professionalProfile: true } // On récupère le profil pro (pour le tarif)
+    });
     
-    if (!user) {
-      return { days: 0, money: 0, badges: [] };
+    if (!user) return { days: 0, money: 0, badges: [] };
+
+    // --- CAS 1 : C'EST UN COACH ---
+    if (user.role === 'COACH') {
+      // 1. Compter les RDV totaux (reçus)
+      const reservationsCount = await prisma.booking.count({
+        where: { coachId: userId }
+      });
+
+      // 2. Compter les RDV Confirmés pour calculer l'argent gagné
+      const confirmedBookings = await prisma.booking.count({
+        where: { coachId: userId, status: 'CONFIRMED' }
+      });
+
+      // 3. Calcul : Nombre de RDV validés * Prix de l'heure
+      const hourlyRate = user.professionalProfile?.hourlyRate || 0;
+      const totalEarnings = confirmedBookings * hourlyRate;
+
+      return {
+        role: 'COACH',
+        username: user.username,
+        reservationsCount: reservationsCount, // Nombre total de demandes
+        earnings: totalEarnings,              // Argent gagné
+        hourlyRate: hourlyRate                // Son tarif
+      };
     }
 
-    // A. Calcul des jours sobres
+    // --- CAS 2 : C'EST UN PATIENT (Code habituel) ---
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - user.startDate.getTime());
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)); 
-
-    // B. Calcul de l'argent économisé
     const money = diffDays * (user.dailyCost || 0);
 
-    // C. Vérification et attribution automatique des badges
     await this.checkAndAwardBadges(userId, diffDays);
 
-    // D. Récupération des badges débloqués pour l'affichage
     const unlockedBadges = await prisma.userBadge.findMany({
       where: { userId: userId },
       include: { badge: true }
     });
 
     return {
+      role: 'USER',
       days: diffDays,
       money: Math.floor(money),
       username: user.username,
-      role: user.role,
       badges: unlockedBadges.map(ub => ub.badge)
     };
   }

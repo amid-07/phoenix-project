@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background-color: #2F3A4A; /* Nouvelle couleur de fond */
+  color: #EAE6DA;            /* Nouvelle couleur de texte */
+}

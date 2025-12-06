@@ -18,7 +18,7 @@ let AiCoachService = class AiCoachService {
         this.configService = configService;
         const apiKey = this.configService.get('GEMINI_API_KEY');
         this.genAI = new generative_ai_1.GoogleGenerativeAI(apiKey);
-        this.model = this.genAI.getGenerativeModel({ model: 'gemini-2.0-flash-001' });
+        this.model = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
     }
     async getAdvice(userMessage) {
         const systemPrompt = `

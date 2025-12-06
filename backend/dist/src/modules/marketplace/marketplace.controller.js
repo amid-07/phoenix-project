@@ -8,6 +8,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MarketplaceController = void 0;
 const common_1 = require("@nestjs/common");
@@ -19,6 +22,12 @@ let MarketplaceController = class MarketplaceController {
     async getCoaches() {
         return this.marketplaceService.getAllCoaches();
     }
+    async getDetails(id) {
+        return this.marketplaceService.getCoachDetails(id);
+    }
+    async postReview(body) {
+        return this.marketplaceService.addReview(body.userId, body.coachId, body.rating, body.comment);
+    }
 };
 exports.MarketplaceController = MarketplaceController;
 __decorate([
@@ -27,6 +36,20 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], MarketplaceController.prototype, "getCoaches", null);
+__decorate([
+    (0, common_1.Get)('coach/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], MarketplaceController.prototype, "getDetails", null);
+__decorate([
+    (0, common_1.Post)('review'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], MarketplaceController.prototype, "postReview", null);
 exports.MarketplaceController = MarketplaceController = __decorate([
     (0, common_1.Controller)('marketplace'),
     __metadata("design:paramtypes", [marketplace_service_1.MarketplaceService])

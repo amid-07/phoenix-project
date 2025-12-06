@@ -1,5 +1,5 @@
 export declare class BookingsService {
-    createBooking(patientId: string, coachId: string, dateString: string): Promise<{
+    createBooking(patientId: string, coachId: string, dateString: string, availabilityId?: string): Promise<{
         id: string;
         date: Date;
         status: string;
