@@ -4,7 +4,7 @@ import { Send, Bot, User, RefreshCw } from 'lucide-react';
 
 export default function ChatPage() {
   const [messages, setMessages] = useState([
-    { id: 1, text: "Bonjour ! Je suis l'IA TAFUT. Je suis là pour t'écouter et te soutenir.", sender: 'ai' }
+    { id: 1, text: "Bonjour ! Je suis l'IA TAFSUT. Je suis là pour t'écouter et te soutenir.", sender: 'ai' }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -59,7 +59,7 @@ export default function ChatPage() {
           <Bot size={24} />
         </div>
         <div>
-          <h2 className="font-bold text-lg text-primary">Coach TAFUT</h2>
+          <h2 className="font-bold text-lg text-primary">Coach TAFSUT</h2>
           <p className="text-xs text-accent flex items-center gap-1">
             <span className="w-2 h-2 bg-accent rounded-full animate-pulse"></span> En ligne
           </p>
@@ -83,7 +83,7 @@ export default function ChatPage() {
         {loading && (
           <div className="flex justify-start">
             <div className="bg-surface p-4 rounded-2xl rounded-bl-none text-gray-300 italic flex items-center gap-2">
-              <RefreshCw size={16} className="animate-spin"/> TAFUT réfléchit...
+              <RefreshCw size={16} className="animate-spin"/> TAFSUT réfléchit...
             </div>
           </div>
         )}

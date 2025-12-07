@@ -36,7 +36,7 @@ export default function Dashboard() {
       return;
     }
     
-    setUserName(name || 'Membre TAFUT');
+    setUserName(name || 'Membre TAFSUT');
 
     // Récupération des stats avec le Header spécial Ngrok
     fetch(`${API_URL}/users/${id}/stats`, {
@@ -105,7 +105,7 @@ export default function Dashboard() {
       {/* SIDEBAR */}
       <aside className="w-64 bg-[#59647A] border-r border-white/5 p-6 flex flex-col justify-between hidden md:flex">
         <div>
-          <h1 className="text-3xl font-bold mb-10 text-[#EAE6DA] tracking-widest text-center">TAFUT</h1>
+          <h1 className="text-3xl font-bold mb-10 text-[#EAE6DA] tracking-widest text-center">TAFSUT</h1>
           
           <nav className="space-y-2">
             <SidebarItem icon={LayoutDashboard} label="Tableau de bord" active onClick={() => {}} />

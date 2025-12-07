@@ -60,7 +60,7 @@ export default function LoginPage() {
           <div className="w-16 h-16 bg-[#EAE6DA] rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-[#EAE6DA]/20">
             <span className="text-3xl font-bold text-[#2F3A4A]">T</span>
           </div>
-          <h1 className="text-3xl font-bold text-[#EAE6DA] mb-2">TAFUT</h1>
+          <h1 className="text-3xl font-bold text-[#EAE6DA] mb-2">TAFSUT</h1>
           <p className="text-[#EAE6DA]/70">Retrouvez la lumière.</p>
         </div>
 
