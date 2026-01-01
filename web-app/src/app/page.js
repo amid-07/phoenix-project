@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Lock, Mail, ArrowRight, Loader2 } from 'lucide-react';
+import Image from 'next/image';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -56,14 +57,20 @@ export default function LoginPage() {
       
       <div className="w-full max-w-md bg-[#59647A] p-8 rounded-2xl shadow-2xl border border-white/10">
         
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-[#EAE6DA] rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-[#EAE6DA]/20">
-            <span className="text-3xl font-bold text-[#2F3A4A]">T</span>
+      <div className="text-center mb-8 flex flex-col items-center">
+          {/* NOUVEAU LOGO ICI */}
+          <div className="mb-4 drop-shadow-lg">
+            <Image 
+              src="/logo.png" 
+              alt="Logo Tafut" 
+              width={100} 
+              height={100} 
+              className="rounded-full bg-[#EAE6DA] p-1" // Petit fond crème pour qu'il ressorte bien
+            />
           </div>
-          <h1 className="text-3xl font-bold text-[#EAE6DA] mb-2">TAFSUT</h1>
+          <h1 className="text-3xl font-bold text-[#EAE6DA] mb-2 tracking-widest">TAFUT</h1>
           <p className="text-[#EAE6DA]/70">Retrouvez la lumière.</p>
         </div>
-
         <form onSubmit={handleLogin} className="space-y-6">
           
           <div>
