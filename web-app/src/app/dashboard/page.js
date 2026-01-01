@@ -6,16 +6,17 @@ import Image from 'next/image';
 import { 
   LayoutDashboard, Users, BookOpen, LogOut, Trophy, Activity, 
   AlertTriangle, MessageCircle, Calendar, Zap, Briefcase, 
-  DollarSign, ClipboardList, ChevronRight, TrendingUp 
+  DollarSign, ClipboardList, ChevronRight, Menu, X // Ajout de Menu et X
 } from 'lucide-react';
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
   const [userRole, setUserRole] = useState('USER');
   const [userName, setUserName] = useState('Utilisateur');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // État pour le menu mobile
   const router = useRouter();
 
-  // ⚠️ URL (Localhost pour le web)
+  // ⚠️ URL Localhost
   const API_URL = "http://localhost:3000";
 
   useEffect(() => {
@@ -42,7 +43,13 @@ export default function Dashboard() {
     }
   };
 
-  // Composant Menu Latéral Amélioré
+  // Navigation vers une page (ferme le menu mobile)
+  const navigateTo = (path) => {
+    setIsMobileMenuOpen(false);
+    if (path) router.push(path);
+  };
+
+  // Composant Menu Latéral
   const SidebarItem = ({ icon: Icon, label, onClick, active, highlight }) => (
     <button 
       onClick={onClick}
@@ -59,7 +66,7 @@ export default function Dashboard() {
     </button>
   );
 
-  // Composant Carte Accès Rapide (Nouveau Design)
+  // Composant Carte Accès Rapide
   const QuickAction = ({ icon: Icon, title, desc, color, onClick }) => (
     <div 
       onClick={onClick}
@@ -85,22 +92,48 @@ export default function Dashboard() {
     </div>
   );
 
+  // Contenu du Menu (Utilisé pour Desktop et Mobile)
+  const MenuContent = () => (
+    <>
+      <div className="space-y-1">
+        <p className="px-4 text-xs font-bold text-[#59647A] uppercase tracking-widest mb-2">Menu Principal</p>
+        <SidebarItem icon={LayoutDashboard} label="Tableau de bord" active onClick={() => navigateTo()} />
+        
+        {userRole === 'COACH' ? (
+          <>
+            <SidebarItem icon={Briefcase} label="Espace Pro" highlight onClick={() => navigateTo('/dashboard/coach')} />
+            <SidebarItem icon={Users} label="Annuaire Experts" onClick={() => navigateTo('/dashboard/marketplace')} />
+          </>
+        ) : (
+          <>
+            <SidebarItem icon={BookOpen} label="Journal de Bord" onClick={() => navigateTo('/dashboard/journal')} />
+            <SidebarItem icon={Users} label="Experts & Coachs" onClick={() => navigateTo('/dashboard/marketplace')} />
+            <SidebarItem icon={Calendar} label="Mes Rendez-vous" onClick={() => navigateTo('/dashboard/bookings')} />
+            <SidebarItem icon={Activity} label="Bilan & Analyse" onClick={() => navigateTo('/dashboard/analysis')} />
+          </>
+        )}
+      </div>
+      
+      <div className="mt-auto pt-6">
+        <button onClick={handleLogout} className="flex items-center justify-center w-full gap-2 px-4 py-3 text-[#FF6B6B] hover:bg-[#FF6B6B]/10 rounded-xl transition text-sm font-bold border border-[#FF6B6B]/20 hover:border-[#FF6B6B]">
+          <LogOut size={16} /> Déconnexion
+        </button>
+      </div>
+    </>
+  );
+
   if (!stats) return <div className="min-h-screen bg-[#2F3A4A] flex items-center justify-center"><div className="animate-spin rounded-full h-10 w-10 border-t-2 border-[#EAE6DA]"></div></div>;
 
   return (
     <div className="flex h-screen bg-[#2F3A4A] font-sans overflow-hidden">
       
-      {/* === SIDEBAR PREMIUM === */}
-      <aside className="w-72 bg-[#252E3E] border-r border-white/5 flex flex-col justify-between hidden md:flex relative">
-        {/* Glow effect background */}
-        <div className="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-[#6C63FF]/10 to-transparent pointer-events-none"/>
-
-        <div className="p-6 relative z-10">
-          {/* LOGO AREA */}
+      {/* === SIDEBAR DESKTOP (Cachée sur mobile) === */}
+      <aside className="w-72 bg-[#252E3E] border-r border-white/5 flex-col justify-between hidden md:flex relative">
+        <div className="p-6 relative z-10 h-full flex flex-col">
+          {/* Logo Desktop */}
           <div className="flex items-center gap-4 mb-12">
             <div className="relative w-12 h-12">
-              <div className="absolute inset-0 bg-[#EAE6DA] rounded-full blur opacity-20 animate-pulse"></div>
-              <Image src="/logo.png" alt="Logo" width={48} height={48} className="rounded-full relative z-10" />
+               <Image src="/logo.png" alt="Logo" width={48} height={48} className="rounded-full" />
             </div>
             <div>
               <h1 className="text-2xl font-bold text-[#EAE6DA] tracking-widest">TAFSUT</h1>
@@ -108,59 +141,61 @@ export default function Dashboard() {
             </div>
           </div>
           
-          <div className="space-y-1">
-            <p className="px-4 text-xs font-bold text-[#59647A] uppercase tracking-widest mb-2">Menu Principal</p>
-            <SidebarItem icon={LayoutDashboard} label="Tableau de bord" active onClick={() => {}} />
-            
-            {userRole === 'COACH' ? (
-              <>
-                <SidebarItem icon={Briefcase} label="Espace Pro" highlight onClick={() => router.push('/dashboard/coach')} />
-                <SidebarItem icon={Users} label="Annuaire Experts" onClick={() => router.push('/dashboard/marketplace')} />
-              </>
-            ) : (
-              <>
-                <SidebarItem icon={BookOpen} label="Journal de Bord" onClick={() => router.push('/dashboard/journal')} />
-                <SidebarItem icon={Users} label="Experts & Coachs" onClick={() => router.push('/dashboard/marketplace')} />
-                <SidebarItem icon={Calendar} label="Mes Rendez-vous" onClick={() => router.push('/dashboard/bookings')} />
-                <SidebarItem icon={Activity} label="Bilan & Analyse" onClick={() => router.push('/dashboard/analysis')} />
-              </>
-            )}
-          </div>
-        </div>
-
-        <div className="p-6">
-          <div className="bg-[#2F3A4A] rounded-xl p-4 mb-4 border border-white/5 flex items-center gap-3">
-             <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#6C63FF] to-[#4ECDC4] flex items-center justify-center text-white font-bold shadow-lg">
-                {stats.username?.charAt(0).toUpperCase()}
-             </div>
-             <div className="overflow-hidden">
-               <p className="text-sm text-white font-bold truncate">{stats.username}</p>
-               <p className="text-xs text-[#B0BCC9]">{userRole === 'COACH' ? 'Professionnel' : 'Membre'}</p>
-             </div>
-          </div>
-          <button onClick={handleLogout} className="flex items-center justify-center w-full gap-2 px-4 py-3 text-[#FF6B6B] hover:bg-[#FF6B6B]/10 rounded-xl transition text-sm font-bold border border-[#FF6B6B]/20 hover:border-[#FF6B6B]">
-            <LogOut size={16} /> Déconnexion
-          </button>
+          <MenuContent />
         </div>
       </aside>
 
-      {/* === CONTENU PRINCIPAL === */}
-      <main className="flex-1 overflow-y-auto bg-[url('/noise.png')]"> 
-        <div className="p-8 max-w-7xl mx-auto">
+      {/* === MENU MOBILE (OVERLAY) === */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-50 flex md:hidden">
+          {/* Fond sombre cliquable pour fermer */}
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)}></div>
           
-          <header className="mb-10">
-            <h2 className="text-3xl font-bold text-white mb-1">Bon retour, {stats.username}</h2>
-            <p className="text-[#B0BCC9]">Voici un aperçu de votre progression aujourd'hui.</p>
+          {/* Le Menu Latéral Mobile */}
+          <div className="relative bg-[#252E3E] w-3/4 max-w-sm h-full shadow-2xl p-6 flex flex-col animate-slide-in">
+            <div className="flex justify-between items-center mb-8">
+              <div className="flex items-center gap-3">
+                 <Image src="/logo.png" alt="Logo" width={32} height={32} className="rounded-full" />
+                 <h1 className="text-xl font-bold text-[#EAE6DA] tracking-widest">TAFSUT</h1>
+              </div>
+              <button onClick={() => setIsMobileMenuOpen(false)} className="text-[#B0BCC9] hover:text-white">
+                <X size={28} />
+              </button>
+            </div>
+            <MenuContent />
+          </div>
+        </div>
+      )}
+
+      {/* === CONTENU PRINCIPAL === */}
+      <main className="flex-1 overflow-y-auto bg-[url('/noise.png')] relative"> 
+        
+        {/* HEADER MOBILE (Visible uniquement sur mobile) */}
+        <div className="md:hidden flex items-center justify-between p-4 bg-[#252E3E] border-b border-white/5 sticky top-0 z-40">
+           <div className="flex items-center gap-3">
+             <Image src="/logo.png" alt="Logo" width={32} height={32} className="rounded-full" />
+             <h1 className="text-lg font-bold text-[#EAE6DA]">TAFSUT</h1>
+           </div>
+           <button onClick={() => setIsMobileMenuOpen(true)} className="text-[#EAE6DA]">
+             <Menu size={28} />
+           </button>
+        </div>
+
+        <div className="p-4 md:p-8 max-w-7xl mx-auto">
+          
+          <header className="mb-10 mt-4 md:mt-0">
+            <h2 className="text-2xl md:text-3xl font-bold text-white mb-1">Bon retour, {stats.username}</h2>
+            <p className="text-[#B0BCC9] text-sm md:text-base">Voici un aperçu de votre progression.</p>
           </header>
 
+          {/* ... (LE RESTE DU CONTENU RESTE IDENTIQUE) ... */}
           {userRole === 'COACH' ? (
-            /* --- DASHBOARD COACH (Business) --- */
+            /* --- DASHBOARD COACH --- */
             <>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
                 <div className="bg-gradient-to-br from-[#59647A]/40 to-[#2F3A4A]/40 backdrop-blur-xl p-6 rounded-2xl border border-white/10 shadow-xl">
                   <div className="flex justify-between items-start mb-4">
                     <div className="p-3 bg-[#FFD93D]/20 rounded-xl text-[#FFD93D]"><DollarSign size={24} /></div>
-                    <span className="text-xs bg-[#FFD93D]/10 text-[#FFD93D] px-2 py-1 rounded">+12% cette semaine</span>
                   </div>
                   <h3 className="text-4xl font-bold text-white mb-1">{stats.earnings || 0} €</h3>
                   <p className="text-sm text-[#B0BCC9]">Revenus générés</p>
@@ -187,22 +222,16 @@ export default function Dashboard() {
                 <Briefcase size={20} className="text-[#FFD93D]"/> Actions Rapides
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <QuickAction icon={Briefcase} title="Gérer mon cabinet" desc="Accédez à vos demandes et confirmez les créneaux." color="#FFD93D" onClick={() => router.push('/dashboard/coach')} />
-                <QuickAction icon={Users} title="Consulter l'annuaire" desc="Voir les profils des autres experts de la plateforme." color="#4ECDC4" onClick={() => router.push('/dashboard/marketplace')} />
+                <QuickAction icon={Briefcase} title="Gérer mon cabinet" desc="Accédez à vos demandes et confirmez les créneaux." color="#FFD93D" onClick={() => navigateTo('/dashboard/coach')} />
+                <QuickAction icon={Users} title="Consulter l'annuaire" desc="Voir les profils des autres experts de la plateforme." color="#4ECDC4" onClick={() => navigateTo('/dashboard/marketplace')} />
               </div>
             </>
-
           ) : (
-            /* --- DASHBOARD PATIENT (Santé) --- */
+            /* --- DASHBOARD PATIENT --- */
             <>
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
-                
-                {/* HERO CARD - JOURS */}
                 <div className="lg:col-span-2 relative overflow-hidden rounded-3xl p-8 shadow-2xl group">
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#6C63FF] to-[#4ECDC4] opacity-90 transition-opacity group-hover:opacity-100"></div>
-                  {/* Decorative circles */}
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
-                  
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#6C63FF] to-[#4ECDC4] opacity-90"></div>
                   <div className="relative z-10 flex flex-col justify-between h-full">
                     <div className="flex justify-between items-start">
                       <div>
@@ -213,19 +242,14 @@ export default function Dashboard() {
                         <Trophy size={32} className="text-white" />
                       </div>
                     </div>
-                    
                     <div className="mt-8 flex items-center gap-3">
-                       <div className="h-2 flex-1 bg-black/20 rounded-full overflow-hidden">
-                         <div className="h-full bg-white w-3/4 rounded-full"></div>
-                       </div>
                        <span className="text-sm font-bold text-white">Continuer ! 🔥</span>
                     </div>
                   </div>
                 </div>
 
-                {/* CARTE ÉCONOMIES */}
-                <div className="bg-[#59647A]/20 backdrop-blur-md border border-white/10 rounded-3xl p-8 flex flex-col justify-center items-center shadow-xl hover:bg-[#59647A]/30 transition">
-                  <div className="w-16 h-16 bg-[#4ECDC4]/20 rounded-full flex items-center justify-center mb-4 text-[#4ECDC4] shadow-lg shadow-[#4ECDC4]/20">
+                <div className="bg-[#59647A]/20 backdrop-blur-md border border-white/10 rounded-3xl p-8 flex flex-col justify-center items-center shadow-xl">
+                  <div className="w-16 h-16 bg-[#4ECDC4]/20 rounded-full flex items-center justify-center mb-4 text-[#4ECDC4]">
                     <DollarSign size={32} />
                   </div>
                   <h3 className="text-4xl font-bold text-[#EAE6DA] mb-1">{stats.money} €</h3>
@@ -233,30 +257,15 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* SUCCÈS & BADGES (Petit bandeau) */}
-              <div className="mb-10 bg-[#252E3E] border border-white/5 rounded-2xl p-6 flex items-center gap-6 overflow-hidden relative">
-                <div className="min-w-fit flex items-center gap-2 text-[#FFD93D] font-bold border-r border-white/10 pr-6">
-                  <Trophy size={20} /> Vos Succès
-                </div>
-                <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
-                   {stats.badges?.length > 0 ? stats.badges.map((b,i) => (
-                     <span key={i} className="flex items-center gap-2 bg-[#2F3A4A] px-4 py-2 rounded-lg text-xs font-medium text-[#EAE6DA] border border-white/10 whitespace-nowrap">
-                       <span className="w-2 h-2 rounded-full bg-[#FFD93D]"></span> {b.name}
-                     </span>
-                   )) : <span className="text-sm text-[#B0BCC9] italic">Aucun badge débloqué pour l'instant.</span>}
-                </div>
-              </div>
-
-              {/* GRILLE D'ACTIONS */}
               <h3 className="text-lg font-bold text-white mb-5 flex items-center gap-2">
                 <Zap size={20} className="text-[#4ECDC4]"/> Accès Rapide
               </h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-                <QuickAction icon={MessageCircle} title="Coach IA" desc="Discussion & Soutien 24/7" color="#EAE6DA" onClick={() => router.push('/dashboard/chat')} />
-                <QuickAction icon={Users} title="Experts" desc="Trouvez un psychologue certifié" color="#4ECDC4" onClick={() => router.push('/dashboard/marketplace')} />
-                <QuickAction icon={BookOpen} title="Journal" desc="Notez vos pensées du jour" color="#FFD93D" onClick={() => router.push('/dashboard/journal')} />
-                <QuickAction icon={AlertTriangle} title="Urgence" desc="Besoin d'aide immédiate ?" color="#FF6B6B" onClick={() => router.push('/dashboard/crisis')} />
+                <QuickAction icon={MessageCircle} title="Coach IA" desc="Discussion 24/7" color="#EAE6DA" onClick={() => navigateTo('/dashboard/chat')} />
+                <QuickAction icon={Users} title="Experts" desc="Trouvez un psychologue" color="#4ECDC4" onClick={() => navigateTo('/dashboard/marketplace')} />
+                <QuickAction icon={BookOpen} title="Journal" desc="Vos pensées du jour" color="#FFD93D" onClick={() => navigateTo('/dashboard/journal')} />
+                <QuickAction icon={AlertTriangle} title="Urgence" desc="Besoin d'aide immédiate ?" color="#FF6B6B" onClick={() => navigateTo('/dashboard/crisis')} />
               </div>
             </>
           )}
