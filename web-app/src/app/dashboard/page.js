@@ -25,7 +25,7 @@ export default function Dashboard() {
     
     if (!id) { router.push('/'); return; }
     
-    setUserName(name || 'Membre TAFUT');
+    setUserName(name || 'Membre TAFSUT');
 
     fetch(`${API_URL}/users/${id}/stats`, {
       headers: { 'ngrok-skip-browser-warning': 'true' }
@@ -149,7 +149,7 @@ export default function Dashboard() {
       {/* --- SIDEBAR DESKTOP (Cachée sur Mobile) --- */}
       <aside className="w-64 bg-[#59647A] border-r border-white/5 p-6 flex-col justify-between hidden md:flex">
         <div>
-          <h1 className="text-3xl font-bold mb-10 text-[#EAE6DA] tracking-widest text-center">TAFUT</h1>
+          <h1 className="text-3xl font-bold mb-10 text-[#EAE6DA] tracking-widest text-center">TAFSUT</h1>
           <nav className="space-y-2">
             <SidebarItem icon={LayoutDashboard} label="Tableau de bord" active onClick={() => {}} />
             {userRole === 'COACH' ? (
@@ -182,7 +182,7 @@ export default function Dashboard() {
              <div className="w-10 h-10 bg-[#EAE6DA] rounded-full flex items-center justify-center text-[#2F3A4A] font-bold shadow-lg">
                 T
              </div>
-             <span className="text-xl font-bold text-[#EAE6DA] tracking-widest">TAFUT</span>
+             <span className="text-xl font-bold text-[#EAE6DA] tracking-widest">TAFSUT</span>
           </div>
           <button onClick={() => setIsMobileMenuOpen(true)} className="p-2 bg-[#59647A] rounded-lg text-[#EAE6DA]">
              <Menu size={28} />
