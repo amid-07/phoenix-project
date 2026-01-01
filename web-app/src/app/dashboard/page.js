@@ -25,7 +25,7 @@ export default function Dashboard() {
     
     if (!id) { router.push('/'); return; }
     
-    setUserName(name || 'Membre TAFUT');
+    setUserName(name || 'Membre TAFSUT');
 
     fetch(`${API_URL}/users/${id}/stats`, {
       headers: { 'ngrok-skip-browser-warning': 'true' }
@@ -151,7 +151,7 @@ export default function Dashboard() {
             <div className="flex justify-between items-center mb-6">
                <div className="flex items-center gap-3">
                  <Image src="/logo.png" alt="Logo" width={32} height={32} className="rounded-full" />
-                 <h1 className="text-xl font-bold text-[#EAE6DA] tracking-widest">TAFUT</h1>
+                 <h1 className="text-xl font-bold text-[#EAE6DA] tracking-widest">TAFSUT</h1>
                </div>
                <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 bg-[#59647A] rounded-full text-[#EAE6DA]">
                   <X size={24} />
@@ -176,7 +176,7 @@ export default function Dashboard() {
                 <Image src="/logo.png" alt="Logo" width={48} height={48} className="rounded-full relative z-10" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-[#EAE6DA] tracking-widest">TAFUT</h1>
+                <h1 className="text-2xl font-bold text-[#EAE6DA] tracking-widest">TAFSUT</h1>
                 <p className="text-[10px] text-[#B0BCC9] uppercase tracking-wider">Santé Mentale</p>
               </div>
             </div>
@@ -195,7 +195,7 @@ export default function Dashboard() {
            {/* Mobile Header : Logo + Menu */}
            <div className="md:hidden flex items-center gap-3">
               <Image src="/logo.png" alt="Logo" width={32} height={32} className="rounded-full" />
-              <h1 className="text-lg font-bold text-[#EAE6DA]">TAFUT</h1>
+              <h1 className="text-lg font-bold text-[#EAE6DA]">TAFSUT</h1>
            </div>
 
            {/* Desktop Header : Bonjour... */}
@@ -298,12 +298,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* --- MESSAGE POUR MOBILE --- */}
-        <div className="md:hidden mt-8 p-6 bg-[#59647A]/20 border border-dashed border-white/10 rounded-2xl text-center">
-           <p className="text-[#EAE6DA]/60 text-sm">
-             Toutes les fonctionnalités (Journal, IA, Experts) sont disponibles dans le <span className="text-[#EAE6DA] font-bold">Menu ☰</span> en haut.
-           </p>
-        </div>
 
       </main>
     </div>
