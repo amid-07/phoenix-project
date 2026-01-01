@@ -68,7 +68,7 @@ export default function LoginPage() {
               className="rounded-full bg-[#EAE6DA] p-1" // Petit fond crème pour qu'il ressorte bien
             />
           </div>
-          <h1 className="text-3xl font-bold text-[#EAE6DA] mb-2 tracking-widest">TAFUT</h1>
+          <h1 className="text-3xl font-bold text-[#EAE6DA] mb-2 tracking-widest">TAFSUT</h1>
           <p className="text-[#EAE6DA]/70">Retrouvez la lumière.</p>
         </div>
         <form onSubmit={handleLogin} className="space-y-6">
