@@ -51,7 +51,7 @@ export default function DashboardLayout({ children }) {
       <aside className="w-72 bg-[#252E3E] border-r border-white/5 hidden md:flex flex-col p-6 relative">
         <div className="flex items-center gap-4 mb-10">
           <div className="w-10 h-10 relative"><Image src="/logo.png" alt="Logo" width={40} height={40} className="rounded-full" /></div>
-          <h1 className="text-2xl font-bold tracking-widest text-[#EAE6DA]">TAFUT</h1>
+          <h1 className="text-2xl font-bold tracking-widest text-[#EAE6DA]">TAFSUT</h1>
         </div>
         
         <nav className="space-y-1 flex-1">
@@ -81,7 +81,7 @@ export default function DashboardLayout({ children }) {
       <main className="flex-1 flex flex-col h-full relative overflow-hidden bg-[url('/noise.png')]">
         {/* Header Mobile */}
         <div className="md:hidden p-4 flex justify-between items-center bg-[#252E3E] border-b border-white/5">
-           <div className="flex items-center gap-2"><Image src="/logo.png" width={32} height={32} className="rounded-full"/><span className="font-bold">TAFUT</span></div>
+           <div className="flex items-center gap-2"><Image src="/logo.png" width={32} height={32} className="rounded-full"/><span className="font-bold">TAFSUT</span></div>
            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}><Menu size={24}/></button>
         </div>
 

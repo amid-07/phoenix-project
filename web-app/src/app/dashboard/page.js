@@ -27,7 +27,7 @@ export default function DashboardPage() {
       return;
     }
     
-    setUserName(name || 'Membre TAFUT');
+    setUserName(name || 'Membre TAFSUT');
 
     // Récupération des stats avec le header spécial Ngrok
     fetch(`${API_URL}/users/${id}/stats`, {
