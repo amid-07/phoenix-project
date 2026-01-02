@@ -8,20 +8,22 @@ import {
   DollarSign, ClipboardList, ChevronRight 
 } from 'lucide-react';
 
-export default function DashboardPage() {
+export default function Dashboard() {
+  // --- ÉTATS ---
   const [stats, setStats] = useState(null);
   const [userRole, setUserRole] = useState('USER');
   const [userName, setUserName] = useState('Utilisateur');
   const router = useRouter();
 
-  // ⚠️ URL DYNAMIQUE
+  // ⚠️ URL API
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
+  // --- 1. CHARGEMENT DES DONNÉES ---
   useEffect(() => {
     const id = localStorage.getItem('userId');
     const name = localStorage.getItem('username');
     
-    // Sécurité : Si pas connecté, retour à l'accueil
+    // Sécurité : Redirection si pas connecté
     if (!id) {
       router.push('/'); 
       return;
@@ -29,7 +31,7 @@ export default function DashboardPage() {
     
     setUserName(name || 'Membre TAFSUT');
 
-    // Récupération des stats avec le header spécial Ngrok
+    // Fetch Stats avec header de sécurité Ngrok
     fetch(`${API_URL}/users/${id}/stats`, {
       headers: { 'ngrok-skip-browser-warning': 'true' }
     })
@@ -38,10 +40,10 @@ export default function DashboardPage() {
         setStats(data);
         if (data.role) setUserRole(data.role);
       })
-      .catch(err => console.error("Erreur:", err));
+      .catch(err => console.error("Erreur connexion:", err));
   }, [router]);
 
-  // Composant Carte d'Accès Rapide
+  // --- COMPOSANT UI : CARTE ACCÈS RAPIDE ---
   const QuickAccessCard = ({ icon: Icon, title, sub, color, onClick }) => (
     <div 
       onClick={onClick} 
@@ -62,7 +64,8 @@ export default function DashboardPage() {
     </div>
   );
 
-  if (!stats) return <div className="h-full flex items-center justify-center text-[#EAE6DA]/50">Chargement des données...</div>;
+  // Écran de chargement
+  if (!stats) return <div className="min-h-screen bg-[#2F3A4A] text-[#EAE6DA] flex items-center justify-center">Chargement de votre espace...</div>;
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -108,11 +111,13 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Accès Rapide Coach */}
-          <h3 className="text-xl font-bold mb-4 text-[#EAE6DA] flex items-center gap-2"><Zap size={20}/> Gestion</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-             <QuickAccessCard icon={Briefcase} title="Espace Professionnel" sub="Gérer et confirmer les RDV" color="#FFD93D" onClick={() => router.push('/dashboard/coach')} />
-             <QuickAccessCard icon={Users} title="Annuaire Experts" sub="Voir les profils collègues" color="#4ECDC4" onClick={() => router.push('/dashboard/marketplace')} />
+          {/* Accès Rapide Coach (CACHÉ SUR MOBILE via 'hidden md:block') */}
+          <div className="hidden md:block">
+            <h3 className="text-xl font-bold mb-4 text-[#EAE6DA] flex items-center gap-2"><Zap size={20}/> Gestion</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+               <QuickAccessCard icon={Briefcase} title="Espace Professionnel" sub="Gérer et confirmer les RDV" color="#FFD93D" onClick={() => router.push('/dashboard/coach')} />
+               <QuickAccessCard icon={Users} title="Annuaire Experts" sub="Voir les profils collègues" color="#4ECDC4" onClick={() => router.push('/dashboard/marketplace')} />
+            </div>
           </div>
         </>
       ) : (
@@ -162,16 +167,21 @@ export default function DashboardPage() {
              </div>
           </div>
 
-          {/* Accès Rapide Patient */}
-          <h3 className="text-xl font-bold mb-4 text-[#EAE6DA] flex items-center gap-2"><Zap size={20}/> Accès Rapide</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-             <QuickAccessCard icon={MessageCircle} title="Coach IA" sub="Discussion 24/7" color="#EAE6DA" onClick={() => router.push('/dashboard/chat')} />
-             <QuickAccessCard icon={Users} title="Experts" sub="Prendre RDV" color="#4ECDC4" onClick={() => router.push('/dashboard/marketplace')} />
-             <QuickAccessCard icon={BookOpen} title="Journal" sub="Vos pensées" color="#FFD93D" onClick={() => router.push('/dashboard/journal')} />
-             <QuickAccessCard icon={AlertTriangle} title="Urgence" sub="Aide immédiate" color="#FF6B6B" onClick={() => router.push('/dashboard/crisis')} />
+          {/* --- ACCÈS RAPIDE PATIENT (CACHÉ SUR MOBILE) --- */}
+          {/* La classe 'hidden md:block' cache cette section sur les petits écrans */}
+          <div className="hidden md:block">
+            <h3 className="text-xl font-bold mb-4 text-[#EAE6DA] flex items-center gap-2"><Zap size={20}/> Accès Rapide</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+               <QuickAccessCard icon={MessageCircle} title="Coach IA" sub="Discussion 24/7" color="#EAE6DA" onClick={() => router.push('/dashboard/chat')} />
+               <QuickAccessCard icon={Users} title="Experts" sub="Prendre RDV" color="#4ECDC4" onClick={() => router.push('/dashboard/marketplace')} />
+               <QuickAccessCard icon={BookOpen} title="Journal" sub="Vos pensées" color="#FFD93D" onClick={() => router.push('/dashboard/journal')} />
+               <QuickAccessCard icon={AlertTriangle} title="Urgence" sub="Aide immédiate" color="#FF6B6B" onClick={() => router.push('/dashboard/crisis')} />
+            </div>
           </div>
         </>
       )}
+
+   
 
     </div>
   );

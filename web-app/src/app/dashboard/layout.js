@@ -85,20 +85,43 @@ export default function DashboardLayout({ children }) {
            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}><Menu size={24}/></button>
         </div>
 
-        {/* Menu Mobile Overlay */}
-        {isMobileMenuOpen && (
+{/* Menu Mobile Overlay */}
+{isMobileMenuOpen && (
           <div className="absolute inset-0 z-50 bg-[#252E3E] p-6 animate-in slide-in-from-top">
-             <div className="flex justify-between mb-8"><h2 className="text-xl font-bold">Menu</h2><button onClick={() => setIsMobileMenuOpen(false)}><X/></button></div>
-             <nav className="space-y-2">
-                <SidebarItem icon={LayoutDashboard} label="Accueil" path="/dashboard" />
-                <SidebarItem icon={BookOpen} label="Journal" path="/dashboard/journal" />
-                <SidebarItem icon={Users} label="Experts" path="/dashboard/marketplace" />
-                <SidebarItem icon={Calendar} label="Mes RDV" path="/dashboard/bookings" />
-                <button onClick={handleLogout} className="w-full text-left px-4 py-3 text-[#FF6B6B] font-bold mt-4">Déconnexion</button>
+             <div className="flex justify-between mb-8">
+               <h2 className="text-xl font-bold text-[#EAE6DA]">Menu</h2>
+               <button onClick={() => setIsMobileMenuOpen(false)} className="text-[#EAE6DA]"><X/></button>
+             </div>
+             
+             <nav className="space-y-4">
+                {/* Liens communs */}
+                <SidebarItem icon={LayoutDashboard} label="Tableau de bord" path="/dashboard" />
+
+                {userRole === 'COACH' ? (
+                  <>
+                    <p className="text-xs text-[#EAE6DA]/40 uppercase font-bold tracking-widest pt-4">Espace Pro</p>
+                    <SidebarItem icon={Briefcase} label="Espace Pro" path="/dashboard/coach" />
+                    <SidebarItem icon={Users} label="Annuaire" path="/dashboard/marketplace" />
+                  </>
+                ) : (
+                  <>
+                    <p className="text-xs text-[#EAE6DA]/40 uppercase font-bold tracking-widest pt-4">Mental & Suivi</p>
+                    <SidebarItem icon={BookOpen} label="Journal" path="/dashboard/journal" />
+                    <SidebarItem icon={Activity} label="Bilan IA" path="/dashboard/analysis" /> {/* <-- AJOUTÉ */}
+                    
+                    <p className="text-xs text-[#EAE6DA]/40 uppercase font-bold tracking-widest pt-4">Santé</p>
+                    <SidebarItem icon={MessageCircle} label="Coach IA" path="/dashboard/chat" /> {/* <-- AJOUTÉ */}
+                    <SidebarItem icon={Users} label="Experts" path="/dashboard/marketplace" />
+                    <SidebarItem icon={Calendar} label="Mes RDV" path="/dashboard/bookings" />
+                  </>
+                )}
+
+                <button onClick={handleLogout} className="w-full text-left px-4 py-3 text-[#FF6B6B] font-bold mt-8 border border-[#FF6B6B]/20 rounded-xl flex items-center gap-3">
+                  <LogOut size={20}/> Déconnexion
+                </button>
              </nav>
           </div>
         )}
-
         {/* C'est ici que les pages s'affichent */}
         <div className="flex-1 overflow-y-auto p-4 md:p-8">
           {children}
