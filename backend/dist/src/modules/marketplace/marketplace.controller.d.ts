@@ -77,4 +77,16 @@ export declare class MarketplaceController {
         profileId: string;
         authorId: string;
     }>;
+    addSlot(body: any): Promise<{
+        id: string;
+        date: Date;
+        isBooked: boolean;
+        profileId: string;
+    }>;
+    getMySlots(userId: string): Promise<{
+        id: string;
+        date: Date;
+        isBooked: boolean;
+        profileId: string;
+    }[]>;
 }

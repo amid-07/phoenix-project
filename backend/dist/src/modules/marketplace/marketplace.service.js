@@ -26,7 +26,10 @@ let MarketplaceService = class MarketplaceService {
                 professionalProfile: {
                     include: {
                         availabilities: {
-                            where: { isBooked: false },
+                            where: {
+                                isBooked: false,
+                                date: { gte: new Date() }
+                            },
                             orderBy: { date: 'asc' }
                         },
                         reviews: {
@@ -56,6 +59,39 @@ let MarketplaceService = class MarketplaceService {
                 authorId: userId,
                 profileId: coach.professionalProfile.id
             }
+        });
+    }
+    async addAvailability(userId, dateString) {
+        console.log(`📅 Ajout dispo pour le coach ${userId} à la date : ${dateString}`);
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            include: { professionalProfile: true }
+        });
+        if (!user || !user.professionalProfile) {
+            throw new Error("Profil professionnel introuvable. Êtes-vous bien un coach ?");
+        }
+        return await prisma.availability.create({
+            data: {
+                date: new Date(dateString),
+                isBooked: false,
+                profileId: user.professionalProfile.id
+            }
+        });
+    }
+    async getCoachAvailabilities(userId) {
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            include: { professionalProfile: true }
+        });
+        if (!(user === null || user === void 0 ? void 0 : user.professionalProfile))
+            return [];
+        return await prisma.availability.findMany({
+            where: {
+                profileId: user.professionalProfile.id,
+                isBooked: false,
+                date: { gte: new Date() }
+            },
+            orderBy: { date: 'asc' }
         });
     }
 };

@@ -74,4 +74,16 @@ export declare class MarketplaceService {
         profileId: string;
         authorId: string;
     }>;
+    addAvailability(userId: string, dateString: string): Promise<{
+        id: string;
+        date: Date;
+        isBooked: boolean;
+        profileId: string;
+    }>;
+    getCoachAvailabilities(userId: string): Promise<{
+        id: string;
+        date: Date;
+        isBooked: boolean;
+        profileId: string;
+    }[]>;
 }
