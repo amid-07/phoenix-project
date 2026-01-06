@@ -12,8 +12,15 @@ const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 let BookingsService = class BookingsService {
     async createBooking(patientId, coachId, dateString, availabilityId) {
-        console.log(`📅 Réservation demandée : Patient ${patientId} -> Coach ${coachId} le ${dateString}`);
+        console.log(`📅 Réservation : Patient ${patientId} -> Coach ${coachId}`);
+        let sessionType = 'REMOTE';
         if (availabilityId) {
+            const slot = await prisma.availability.findUnique({
+                where: { id: availabilityId }
+            });
+            if (slot) {
+                sessionType = slot.type;
+            }
             await prisma.availability.update({
                 where: { id: availabilityId },
                 data: { isBooked: true }
@@ -24,7 +31,8 @@ let BookingsService = class BookingsService {
                 patientId: patientId,
                 coachId: coachId,
                 date: new Date(dateString),
-                status: 'PENDING'
+                status: 'PENDING',
+                type: sessionType
             }
         });
     }

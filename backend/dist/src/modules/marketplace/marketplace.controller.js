@@ -29,10 +29,13 @@ let MarketplaceController = class MarketplaceController {
         return this.marketplaceService.addReview(body.userId, body.coachId, body.rating, body.comment);
     }
     async addSlot(body) {
-        return this.marketplaceService.addAvailability(body.userId, body.date);
+        return this.marketplaceService.addAvailability(body.userId, body.date, body.type);
     }
     async getMySlots(userId) {
         return this.marketplaceService.getCoachAvailabilities(userId);
+    }
+    async updateAddress(body) {
+        return this.marketplaceService.updateAddress(body.userId, body.address);
     }
 };
 exports.MarketplaceController = MarketplaceController;
@@ -70,6 +73,13 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], MarketplaceController.prototype, "getMySlots", null);
+__decorate([
+    (0, common_1.Post)('address'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], MarketplaceController.prototype, "updateAddress", null);
 exports.MarketplaceController = MarketplaceController = __decorate([
     (0, common_1.Controller)('marketplace'),
     __metadata("design:paramtypes", [marketplace_service_1.MarketplaceService])

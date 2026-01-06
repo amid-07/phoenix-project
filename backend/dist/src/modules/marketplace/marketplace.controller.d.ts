@@ -94,4 +94,14 @@ export declare class MarketplaceController {
         type: import(".prisma/client").$Enums.SessionType;
         profileId: string;
     }[]>;
+    updateAddress(body: any): Promise<{
+        id: string;
+        title: string;
+        bio: string;
+        specialties: string[];
+        hourlyRate: number;
+        rating: number;
+        address: string | null;
+        userId: string;
+    }>;
 }
