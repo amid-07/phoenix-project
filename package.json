@@ -2,7 +2,8 @@
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
     "@nestjs/config": "^4.0.2",
-    "@prisma/client": "^7.0.1"
+    "@prisma/client": "^7.0.1",
+    "react-qr-code": "^2.0.18"
   },
   "devDependencies": {
     "prisma": "^7.0.1"
