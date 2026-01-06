@@ -7,6 +7,7 @@ export declare class MarketplaceService {
             specialties: string[];
             hourlyRate: number;
             rating: number;
+            address: string | null;
             userId: string;
         };
     } & {
@@ -29,6 +30,7 @@ export declare class MarketplaceService {
                 id: string;
                 date: Date;
                 isBooked: boolean;
+                type: import(".prisma/client").$Enums.SessionType;
                 profileId: string;
             }[];
             reviews: ({
@@ -50,6 +52,7 @@ export declare class MarketplaceService {
             specialties: string[];
             hourlyRate: number;
             rating: number;
+            address: string | null;
             userId: string;
         };
     } & {
@@ -74,16 +77,28 @@ export declare class MarketplaceService {
         profileId: string;
         authorId: string;
     }>;
-    addAvailability(userId: string, dateString: string): Promise<{
+    addAvailability(userId: string, dateString: string, type: 'REMOTE' | 'IN_PERSON'): Promise<{
         id: string;
         date: Date;
         isBooked: boolean;
+        type: import(".prisma/client").$Enums.SessionType;
         profileId: string;
     }>;
     getCoachAvailabilities(userId: string): Promise<{
         id: string;
         date: Date;
         isBooked: boolean;
+        type: import(".prisma/client").$Enums.SessionType;
         profileId: string;
     }[]>;
+    updateAddress(userId: string, address: string): Promise<{
+        id: string;
+        title: string;
+        bio: string;
+        specialties: string[];
+        hourlyRate: number;
+        rating: number;
+        address: string | null;
+        userId: string;
+    }>;
 }

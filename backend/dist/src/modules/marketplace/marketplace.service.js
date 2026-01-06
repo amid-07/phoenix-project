@@ -50,30 +50,31 @@ let MarketplaceService = class MarketplaceService {
             include: { professionalProfile: true }
         });
         if (!coach || !coach.professionalProfile) {
-            throw new Error("Coach introuvable ou sans profil pro");
+            throw new Error("Coach introuvable");
         }
         return await prisma.review.create({
             data: {
-                rating: rating,
-                comment: comment,
+                rating,
+                comment,
                 authorId: userId,
                 profileId: coach.professionalProfile.id
             }
         });
     }
-    async addAvailability(userId, dateString) {
-        console.log(`📅 Ajout dispo pour le coach ${userId} à la date : ${dateString}`);
+    async addAvailability(userId, dateString, type) {
+        console.log(`📅 Ajout dispo pour ${userId} : ${dateString} (${type})`);
         const user = await prisma.user.findUnique({
             where: { id: userId },
             include: { professionalProfile: true }
         });
         if (!user || !user.professionalProfile) {
-            throw new Error("Profil professionnel introuvable. Êtes-vous bien un coach ?");
+            throw new Error("Profil pro introuvable");
         }
         return await prisma.availability.create({
             data: {
                 date: new Date(dateString),
                 isBooked: false,
+                type: type,
                 profileId: user.professionalProfile.id
             }
         });
@@ -92,6 +93,18 @@ let MarketplaceService = class MarketplaceService {
                 date: { gte: new Date() }
             },
             orderBy: { date: 'asc' }
+        });
+    }
+    async updateAddress(userId, address) {
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            include: { professionalProfile: true }
+        });
+        if (!(user === null || user === void 0 ? void 0 : user.professionalProfile))
+            throw new Error("Profil introuvable");
+        return await prisma.professionalProfile.update({
+            where: { id: user.professionalProfile.id },
+            data: { address: address }
         });
     }
 };

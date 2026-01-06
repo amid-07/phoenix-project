@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 @Injectable()
 export class MarketplaceService {
   
-  // --- 1. LISTE DES COACHS (Pour l'annuaire) ---
+  // --- 1. LISTE DES COACHS (Annuaire) ---
   async getAllCoaches() {
     return await prisma.user.findMany({
       where: { role: 'COACH' },
@@ -16,26 +16,26 @@ export class MarketplaceService {
     });
   }
 
-  // --- 2. DÉTAILS D'UN COACH (Pour la fiche patient) ---
+  // --- 2. DÉTAILS D'UN COACH (Fiche complète) ---
   async getCoachDetails(coachUserId: string) {
     const coach = await prisma.user.findUnique({
       where: { id: coachUserId },
       include: {
         professionalProfile: {
           include: {
-            // On récupère les créneaux libres et futurs
+            // Créneaux libres et futurs uniquement
             availabilities: {
               where: { 
                 isBooked: false,
-                date: { gte: new Date() } // Uniquement les dates futures
+                date: { gte: new Date() } 
               },
               orderBy: { date: 'asc' }
             },
-            // On récupère les avis
+            // Avis clients
             reviews: {
               orderBy: { createdAt: 'desc' },
               include: { 
-                author: { select: { username: true } } // Nom de l'auteur
+                author: { select: { username: true } } 
               }
             }
           }
@@ -47,51 +47,50 @@ export class MarketplaceService {
 
   // --- 3. AJOUTER UN AVIS ---
   async addReview(userId: string, coachId: string, rating: number, comment: string) {
-    // On cherche le profil pro du coach
     const coach = await prisma.user.findUnique({
       where: { id: coachId },
       include: { professionalProfile: true }
     });
 
     if (!coach || !coach.professionalProfile) {
-      throw new Error("Coach introuvable ou sans profil pro");
+      throw new Error("Coach introuvable");
     }
 
     return await prisma.review.create({
       data: {
-        rating: rating,
-        comment: comment,
+        rating,
+        comment,
         authorId: userId,
         profileId: coach.professionalProfile.id
       }
     });
   }
 
-  // --- 4. AJOUTER UNE DISPONIBILITÉ (Côté Coach) ---
-  async addAvailability(userId: string, dateString: string) {
-    console.log(`📅 Ajout dispo pour le coach ${userId} à la date : ${dateString}`);
+  // --- 4. AJOUTER UNE DISPONIBILITÉ (Avec Type Visio/Cabinet) ---
+  // type = 'REMOTE' ou 'IN_PERSON'
+  async addAvailability(userId: string, dateString: string, type: 'REMOTE' | 'IN_PERSON') {
+    console.log(`📅 Ajout dispo pour ${userId} : ${dateString} (${type})`);
 
-    // On récupère le profil pro
     const user = await prisma.user.findUnique({
       where: { id: userId },
       include: { professionalProfile: true }
     });
 
     if (!user || !user.professionalProfile) {
-      throw new Error("Profil professionnel introuvable. Êtes-vous bien un coach ?");
+      throw new Error("Profil pro introuvable");
     }
 
-    // Création du créneau
     return await prisma.availability.create({
       data: {
         date: new Date(dateString),
         isBooked: false,
+        type: type, // On enregistre le type de séance
         profileId: user.professionalProfile.id
       }
     });
   }
 
-  // --- 5. VOIR SES PROPRES CRÉNEAUX LIBRES (Côté Coach) ---
+  // --- 5. VOIR SES PROPRES DISPOS (Côté Coach) ---
   async getCoachAvailabilities(userId: string) {
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -104,9 +103,24 @@ export class MarketplaceService {
       where: { 
         profileId: user.professionalProfile.id,
         isBooked: false,
-        date: { gte: new Date() } // Seulement le futur
+        date: { gte: new Date() }
       },
       orderBy: { date: 'asc' }
+    });
+  }
+
+  // --- 6. METTRE À JOUR L'ADRESSE DU CABINET ---
+  async updateAddress(userId: string, address: string) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { professionalProfile: true }
+    });
+
+    if (!user?.professionalProfile) throw new Error("Profil introuvable");
+
+    return await prisma.professionalProfile.update({
+      where: { id: user.professionalProfile.id },
+      data: { address: address }
     });
   }
 }

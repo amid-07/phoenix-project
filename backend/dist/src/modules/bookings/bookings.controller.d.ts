@@ -6,6 +6,7 @@ export declare class BookingsController {
         id: string;
         date: Date;
         status: string;
+        type: import(".prisma/client").$Enums.SessionType;
         patientId: string;
         coachId: string;
         createdAt: Date;
@@ -19,6 +20,7 @@ export declare class BookingsController {
                 specialties: string[];
                 hourlyRate: number;
                 rating: number;
+                address: string | null;
                 userId: string;
             };
         } & {
@@ -39,6 +41,7 @@ export declare class BookingsController {
         id: string;
         date: Date;
         status: string;
+        type: import(".prisma/client").$Enums.SessionType;
         patientId: string;
         coachId: string;
         createdAt: Date;
@@ -62,6 +65,7 @@ export declare class BookingsController {
         id: string;
         date: Date;
         status: string;
+        type: import(".prisma/client").$Enums.SessionType;
         patientId: string;
         coachId: string;
         createdAt: Date;
@@ -70,6 +74,7 @@ export declare class BookingsController {
         id: string;
         date: Date;
         status: string;
+        type: import(".prisma/client").$Enums.SessionType;
         patientId: string;
         coachId: string;
         createdAt: Date;

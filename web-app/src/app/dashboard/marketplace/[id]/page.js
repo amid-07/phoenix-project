@@ -258,22 +258,31 @@ export default function CoachDetailPage() {
               {daySlots.length > 0 ? (
                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
                   {daySlots.map(slot => {
-                    const time = new Date(slot.date).getHours() + "h00";
-                    const isSelected = selectedSlot?.id === slot.id;
-                    return (
-                      <button
-                        key={slot.id}
-                        onClick={() => setSelectedSlot(slot)}
-                        className={`py-2 px-4 rounded-lg text-sm font-bold border transition ${
-                          isSelected 
-                            ? 'bg-[#4ECDC4] border-[#4ECDC4] text-[#2F3A4A]' 
-                            : 'bg-[#2F3A4A] border-white/10 text-[#EAE6DA] hover:border-[#4ECDC4]'
-                        }`}
-                      >
-                        {time}
-                      </button>
-                    );
-                  })}
+  const time = new Date(slot.date).getHours() + "h00";
+  const isSelected = selectedSlot?.id === slot.id;
+  
+  // Icone selon le type
+  const TypeIcon = slot.type === 'IN_PERSON' ? MapPin : Video;
+
+  return (
+    <button
+      key={slot.id}
+      onClick={() => setSelectedSlot(slot)}
+      className={`py-2 px-2 rounded-lg text-sm font-bold border transition flex flex-col items-center justify-center gap-1 ${
+        isSelected 
+          ? 'bg-[#4ECDC4] border-[#4ECDC4] text-[#2F3A4A]' 
+          : 'bg-[#2F3A4A] border-white/10 text-[#EAE6DA] hover:border-[#4ECDC4]'
+      }`}
+    >
+      <span>{time}</span>
+      {/* Petit indicateur visuel */}
+      <div className="flex items-center gap-1 text-[10px] opacity-80">
+        <TypeIcon size={10} />
+        {slot.type === 'IN_PERSON' ? 'Cab' : 'Visio'}
+      </div>
+    </button>
+  );
+})}
                 </div>
               ) : (
                 <p className="text-[#EAE6DA]/40 italic text-sm">Aucun créneau disponible ce jour-là.</p>

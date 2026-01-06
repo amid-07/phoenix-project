@@ -10,7 +10,7 @@ datasource db {
 }
 
 // --------------------------------------
-// 1. GESTION UTILISATEURS & ROLES
+// 1. UTILISATEURS
 // --------------------------------------
 
 model User {
@@ -44,7 +44,7 @@ model User {
   // 3. Les RDV reçus en tant que coach
   bookingsReceived    Booking[]  @relation("CoachBookings")
 
-  // 4. Les avis écrits par cet utilisateur (C'est la ligne qui manquait !)
+  // 4. Les avis écrits par cet utilisateur
   writtenReviews      Review[]
 
   createdAt      DateTime  @default(now())
@@ -63,21 +63,27 @@ model ProfessionalProfile {
   hourlyRate  Float    // Prix de la séance
   rating      Float    @default(5.0) // Note moyenne
   
+  // NOUVEAU : Adresse du cabinet (Optionnel)
+  address     String?
+
   // Lien avec l'utilisateur (le coach)
   userId      String   @unique
   user        User     @relation(fields: [userId], references: [id])
 
-  // NOUVEAU : Ses créneaux et ses avis reçus
+  // Ses créneaux et ses avis reçus
   availabilities Availability[]
   reviews        Review[]
 }
 
 // Gestion des Créneaux Horaires
 model Availability {
-  id        String   @id @default(uuid())
-  date      DateTime // Date et Heure précise du créneau
-  isBooked  Boolean  @default(false)
+  id        String      @id @default(uuid())
+  date      DateTime    // Date et Heure précise du créneau
+  isBooked  Boolean     @default(false)
   
+  // NOUVEAU : Type de créneau proposé (Visio ou Cabinet)
+  type      SessionType @default(REMOTE)
+
   profileId String
   profile   ProfessionalProfile @relation(fields: [profileId], references: [id])
 }
@@ -100,10 +106,13 @@ model Review {
 
 // Gestion des Réservations (RDV validés)
 model Booking {
-  id        String   @id @default(uuid())
-  date      DateTime // Date et heure du RDV
-  status    String   @default("PENDING") // PENDING, CONFIRMED, CANCELLED
+  id        String      @id @default(uuid())
+  date      DateTime    // Date et heure du RDV
+  status    String      @default("PENDING") // PENDING, CONFIRMED, CANCELLED
   
+  // NOUVEAU : Type final de la séance
+  type      SessionType @default(REMOTE)
+
   // Qui réserve ? (Le Patient)
   patientId String
   patient   User     @relation("PatientBookings", fields: [patientId], references: [id])
@@ -140,7 +149,7 @@ model DailyPlan {
 }
 
 // --------------------------------------
-// 4. GAMIFICATION
+// 4. GAMIFICATION & MARKETING
 // --------------------------------------
 
 model Badge {
@@ -164,6 +173,13 @@ model UserBadge {
   badge     Badge    @relation(fields: [badgeId], references: [id])
 }
 
+// Pour la Landing Page (Emails des intéressés)
+model Waitlist {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+}
+
 // --------------------------------------
 // 5. ENUMS
 // --------------------------------------
@@ -181,4 +197,10 @@ enum AddictionType {
   PHONE
   SMOKING
   OTHER
+}
+
+// NOUVEAU : Type de séance
+enum SessionType {
+  REMOTE    // Visio (Jitsi)
+  IN_PERSON // Présentiel (Cabinet)
 }

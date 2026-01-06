@@ -10,6 +10,7 @@ export declare class MarketplaceController {
             specialties: string[];
             hourlyRate: number;
             rating: number;
+            address: string | null;
             userId: string;
         };
     } & {
@@ -32,6 +33,7 @@ export declare class MarketplaceController {
                 id: string;
                 date: Date;
                 isBooked: boolean;
+                type: import(".prisma/client").$Enums.SessionType;
                 profileId: string;
             }[];
             reviews: ({
@@ -53,6 +55,7 @@ export declare class MarketplaceController {
             specialties: string[];
             hourlyRate: number;
             rating: number;
+            address: string | null;
             userId: string;
         };
     } & {
@@ -81,12 +84,14 @@ export declare class MarketplaceController {
         id: string;
         date: Date;
         isBooked: boolean;
+        type: import(".prisma/client").$Enums.SessionType;
         profileId: string;
     }>;
     getMySlots(userId: string): Promise<{
         id: string;
         date: Date;
         isBooked: boolean;
+        type: import(".prisma/client").$Enums.SessionType;
         profileId: string;
     }[]>;
 }

@@ -6,41 +6,54 @@ const prisma = new PrismaClient();
 @Injectable()
 export class BookingsService {
   
-  // 1. Créer une réservation (et bloquer le créneau)
+  // --- 1. CRÉER UNE RÉSERVATION ---
   async createBooking(patientId: string, coachId: string, dateString: string, availabilityId?: string) {
-    console.log(`📅 Réservation demandée : Patient ${patientId} -> Coach ${coachId} le ${dateString}`);
+    console.log(`📅 Réservation : Patient ${patientId} -> Coach ${coachId}`);
     
-    // ÉTAPE CLÉ : Si on fournit un ID de créneau, on le marque comme "Occupé"
+    let sessionType = 'REMOTE'; // Par défaut, si pas de créneau lié
+
+    // Si la réservation vient d'un créneau spécifique
     if (availabilityId) {
+      // 1. On récupère le créneau pour connaître son TYPE (Visio ou Cabinet)
+      const slot = await prisma.availability.findUnique({
+        where: { id: availabilityId }
+      });
+
+      if (slot) {
+        sessionType = slot.type; // On copie le type (ex: IN_PERSON)
+      }
+
+      // 2. On marque le créneau comme "Occupé"
       await prisma.availability.update({
         where: { id: availabilityId },
-        data: { isBooked: true } // Le créneau disparaîtra de la liste des dispos
+        data: { isBooked: true }
       });
     }
 
-    // Création du RDV
+    // 3. On crée la réservation finale
     return await prisma.booking.create({
       data: {
         patientId: patientId,
         coachId: coachId,
         date: new Date(dateString),
-        status: 'PENDING'
+        status: 'PENDING',
+        type: sessionType as any // On sauvegarde le type (REMOTE/IN_PERSON)
       }
     });
   }
 
-  // 2. Voir les réservations d'un PATIENT
+  // --- 2. MES RDV (Patient) ---
   async getMyBookings(userId: string) {
     return await prisma.booking.findMany({
       where: { patientId: userId },
       include: { 
-        coach: { include: { professionalProfile: true } } 
+        coach: { include: { professionalProfile: true } } // On a besoin du profil pour l'adresse
       },
       orderBy: { date: 'desc' }
     });
   }
 
-  // 3. Voir les demandes pour un COACH
+  // --- 3. MES DEMANDES (Coach) ---
   async getCoachBookings(coachId: string) {
     return await prisma.booking.findMany({
       where: { coachId: coachId },
@@ -49,7 +62,7 @@ export class BookingsService {
     });
   }
 
-  // 4. Mettre à jour le statut (Accepter/Refuser)
+  // --- 4. CHANGER STATUT (Accepter/Refuser) ---
   async updateStatus(bookingId: string, newStatus: string) {
     return await prisma.booking.update({
       where: { id: bookingId },

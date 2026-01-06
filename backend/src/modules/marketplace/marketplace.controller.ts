@@ -5,19 +5,19 @@ import { MarketplaceService } from './marketplace.service';
 export class MarketplaceController {
   constructor(private readonly marketplaceService: MarketplaceService) {}
 
-  // 1. Tous les coachs
+  // Lister les coachs
   @Get('coaches')
   async getCoaches() {
     return this.marketplaceService.getAllCoaches();
   }
 
-  // 2. Détail d'un coach (avec créneaux patient)
+  // Détails d'un coach
   @Get('coach/:id')
   async getDetails(@Param('id') id: string) {
     return this.marketplaceService.getCoachDetails(id);
   }
 
-  // 3. Poster un avis
+  // Poster un avis
   @Post('review')
   async postReview(@Body() body: any) {
     return this.marketplaceService.addReview(
@@ -28,15 +28,25 @@ export class MarketplaceController {
     );
   }
 
-  // 4. Ajouter un créneau (Coach)
+  // Ajouter un créneau (Coach)
   @Post('availability')
   async addSlot(@Body() body: any) {
-    return this.marketplaceService.addAvailability(body.userId, body.date);
+    return this.marketplaceService.addAvailability(
+      body.userId, 
+      body.date, 
+      body.type // REMOTE ou IN_PERSON
+    );
   }
 
-  // 5. Voir mes créneaux libres (Coach)
+  // Voir mes créneaux (Coach)
   @Get('availability/:userId')
   async getMySlots(@Param('userId') userId: string) {
     return this.marketplaceService.getCoachAvailabilities(userId);
+  }
+
+  // Mettre à jour l'adresse (Coach)
+  @Post('address')
+  async updateAddress(@Body() body: any) {
+    return this.marketplaceService.updateAddress(body.userId, body.address);
   }
 }

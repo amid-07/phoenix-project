@@ -1,46 +1,71 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Check, X, Calendar, User, Video, Clock, Briefcase, Plus, Trash } from 'lucide-react';
+import { Check, X, Calendar, User, Video, Clock, Briefcase, MapPin, Plus, Save } from 'lucide-react';
 
 export default function CoachDashboardPage() {
   const [requests, setRequests] = useState([]);
-  const [mySlots, setMySlots] = useState([]); // Liste des créneaux libres
-  const [newSlotDate, setNewSlotDate] = useState(''); // Nouvelle date à ajouter
+  const [mySlots, setMySlots] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // ⚠️ URL API
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+  // Nouveaux états
+  const [address, setAddress] = useState('');
+  const [newSlotDate, setNewSlotDate] = useState('');
+  const [sessionType, setSessionType] = useState('REMOTE'); // 'REMOTE' ou 'IN_PERSON'
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  // ⚠️ LOCALHOST
+  const API_URL = "http://localhost:3000";
 
   const fetchData = async () => {
     try {
       const userId = localStorage.getItem('userId');
       if (!userId) return;
-
-      // 1. Récupérer les RDV (Bookings)
-      const resBookings = await fetch(`${API_URL}/bookings/coach/${userId}`, {headers: {'ngrok-skip-browser-warning':'true'}});
-      const bookingsData = await resBookings.json();
       
-      // Tri des RDV
-      const sortedBookings = bookingsData.sort((a, b) => {
+      // 1. Demandes
+      const resReq = await fetch(`${API_URL}/bookings/coach/${userId}`);
+      const dataReq = await resReq.json();
+      const sorted = dataReq.sort((a, b) => {
         if (a.status === 'PENDING' && b.status !== 'PENDING') return -1;
         if (a.status !== 'PENDING' && b.status === 'PENDING') return 1;
         return new Date(b.date) - new Date(a.date);
       });
-      setRequests(sortedBookings);
+      setRequests(sorted);
 
-      // 2. Récupérer les créneaux libres (Availabilities)
-      const resSlots = await fetch(`${API_URL}/marketplace/availability/${userId}`, {headers: {'ngrok-skip-browser-warning':'true'}});
-      const slotsData = await resSlots.json();
-      setMySlots(slotsData);
+      // 2. Créneaux libres
+      const resSlots = await fetch(`${API_URL}/marketplace/availability/${userId}`);
+      const dataSlots = await resSlots.json();
+      setMySlots(dataSlots);
 
     } catch (e) { console.error(e); } finally { setLoading(false); }
   };
 
-  // --- ACTIONS RDV ---
+  useEffect(() => { fetchData(); }, []);
+
+  // Sauvegarder l'adresse
+  const saveAddress = async () => {
+    const userId = localStorage.getItem('userId');
+    await fetch(`${API_URL}/marketplace/address`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, address })
+    });
+    alert("Adresse enregistrée !");
+  };
+
+  // Ajouter un créneau avec Type
+  const addSlot = async () => {
+    if (!newSlotDate) return alert("Date requise");
+    try {
+      const userId = localStorage.getItem('userId');
+      await fetch(`${API_URL}/marketplace/availability`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, date: newSlotDate, type: sessionType })
+      });
+      alert("Créneau ajouté !");
+      fetchData();
+    } catch (e) { alert("Erreur"); }
+  };
+
   const handleAction = async (bookingId, action) => {
     await fetch(`${API_URL}/bookings/${bookingId}/status`, {
       method: 'POST',
@@ -50,138 +75,122 @@ export default function CoachDashboardPage() {
     fetchData();
   };
 
-  // --- AJOUTER UN CRÉNEAU ---
-  const addAvailability = async () => {
-    if (!newSlotDate) return alert("Choisissez une date !");
-    
-    try {
-      const userId = localStorage.getItem('userId');
-      const res = await fetch(`${API_URL}/marketplace/availability`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, date: newSlotDate })
-      });
-
-      if (res.ok) {
-        alert("Créneau ajouté !");
-        setNewSlotDate('');
-        fetchData(); // Rafraîchir la liste
-      }
-    } catch (e) { alert("Erreur ajout"); }
-  };
-
   const openVideo = (id) => window.open(`https://meet.jit.si/Phoenix_Seance_${id}`, '_blank');
-  const isSessionActive = (d) => { const diff = (new Date() - new Date(d)) / 60000; return diff > -15 && diff < 90; };
 
   return (
     <div className="p-8 max-w-6xl mx-auto text-[#EAE6DA]">
-      
-      {/* En-tête */}
-      <div className="flex items-center gap-3 mb-8">
-        <div className="p-3 bg-[#FFD93D]/10 rounded-xl text-[#FFD93D]"><Briefcase size={32} /></div>
-        <div>
-          <h1 className="text-3xl font-bold">Espace Professionnel</h1>
-          <p className="text-[#EAE6DA]/60">Gérez vos rendez-vous et votre emploi du temps.</p>
-        </div>
-      </div>
+      <h1 className="text-3xl font-bold mb-8 flex items-center gap-3">
+        <Briefcase className="text-[#FFD93D]" /> Espace Professionnel
+      </h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {/* === COLONNE GAUCHE : GESTION CALENDRIER === */}
-        <div className="lg:col-span-1 space-y-6">
+        {/* --- COLONNE GAUCHE : GESTION --- */}
+        <div className="space-y-6">
           
-          {/* Carte Ajout */}
+          {/* Carte Adresse */}
           <div className="bg-[#59647A] p-6 rounded-2xl border border-white/10 shadow-lg">
-            <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><Calendar size={20}/> Ajouter une dispo</h2>
-            <p className="text-sm text-[#EAE6DA]/60 mb-4">Ouvrez un créneau pour que les patients puissent réserver.</p>
+            <h2 className="font-bold mb-4 flex items-center gap-2"><MapPin size={20}/> Adresse Cabinet</h2>
+            <div className="flex gap-2">
+              <input 
+                type="text" 
+                placeholder="Ex: 10 Rue de la Paix..." 
+                className="flex-1 bg-[#2F3A4A] border border-white/10 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-[#4ECDC4]"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+              />
+              <button onClick={saveAddress} className="bg-[#4ECDC4] p-2 rounded-lg text-[#2F3A4A] hover:bg-white transition"><Save size={18}/></button>
+            </div>
+          </div>
+
+          {/* Carte Ajout Créneau */}
+          <div className="bg-[#59647A] p-6 rounded-2xl border border-white/10 shadow-lg">
+            <h2 className="font-bold mb-4 flex items-center gap-2"><Calendar size={20}/> Ajouter Dispo</h2>
             
+            <label className="text-xs text-[#EAE6DA]/60 uppercase font-bold">Date & Heure</label>
             <input 
               type="datetime-local" 
-              className="w-full bg-[#2F3A4A] border border-white/10 rounded-xl p-3 text-[#EAE6DA] mb-4 outline-none focus:border-[#4ECDC4]"
-              value={newSlotDate}
+              className="w-full bg-[#2F3A4A] border border-white/10 rounded-lg p-2 text-white mb-4 mt-1"
               onChange={(e) => setNewSlotDate(e.target.value)}
             />
-            
-            <button onClick={addAvailability} className="w-full bg-[#4ECDC4] hover:bg-[#3dbdb4] text-[#2F3A4A] font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition">
-              <Plus size={20}/> Ajouter au planning
+
+            <label className="text-xs text-[#EAE6DA]/60 uppercase font-bold">Type de séance</label>
+            <div className="flex gap-2 mt-1 mb-4">
+              <button 
+                onClick={() => setSessionType('REMOTE')}
+                className={`flex-1 py-2 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition ${sessionType === 'REMOTE' ? 'bg-[#4ECDC4] text-[#2F3A4A]' : 'bg-[#2F3A4A] text-gray-400'}`}
+              >
+                <Video size={14}/> Visio
+              </button>
+              <button 
+                onClick={() => setSessionType('IN_PERSON')}
+                className={`flex-1 py-2 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition ${sessionType === 'IN_PERSON' ? 'bg-[#FFD93D] text-[#2F3A4A]' : 'bg-[#2F3A4A] text-gray-400'}`}
+              >
+                <MapPin size={14}/> Cabinet
+              </button>
+            </div>
+
+            <button onClick={addSlot} className="w-full bg-[#EAE6DA] text-[#2F3A4A] py-2 rounded-lg font-bold hover:bg-white transition flex items-center justify-center gap-2">
+              <Plus size={18}/> Ajouter
             </button>
           </div>
 
-          {/* Liste des créneaux libres */}
-          <div className="bg-[#2F3A4A]/50 p-6 rounded-2xl border border-white/5">
-            <h3 className="font-bold mb-4 text-[#EAE6DA]/80">Vos créneaux libres ({mySlots.length})</h3>
-            <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
+          {/* Liste Créneaux */}
+          <div className="bg-[#2F3A4A]/50 p-4 rounded-xl border border-white/5">
+            <h3 className="text-sm font-bold mb-3 text-[#EAE6DA]/60">Vos créneaux ouverts</h3>
+            <div className="space-y-2 max-h-40 overflow-y-auto">
               {mySlots.map(slot => (
-                <div key={slot.id} className="flex justify-between items-center bg-[#59647A] p-3 rounded-lg border border-white/5">
-                  <span className="text-sm">
-                    {new Date(slot.date).toLocaleDateString()} <span className="text-[#4ECDC4] font-bold">{new Date(slot.date).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
-                  </span>
-                  <div className="w-2 h-2 rounded-full bg-[#4ECDC4]"></div>
+                <div key={slot.id} className="flex justify-between items-center text-sm bg-[#59647A] p-2 rounded border border-white/5">
+                  <span>{new Date(slot.date).toLocaleDateString()} à {new Date(slot.date).getHours()}h</span>
+                  {slot.type === 'IN_PERSON' ? <MapPin size={14} className="text-[#FFD93D]"/> : <Video size={14} className="text-[#4ECDC4]"/>}
                 </div>
               ))}
-              {mySlots.length === 0 && <p className="text-xs text-[#EAE6DA]/40 italic">Aucun créneau ouvert.</p>}
             </div>
           </div>
         </div>
 
-        {/* === COLONNE DROITE : DEMANDES DE RDV === */}
-        <div className="lg:col-span-2">
-          <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><User size={20}/> Demandes & Séances</h2>
+        {/* --- COLONNE DROITE : DEMANDES --- */}
+        <div className="lg:col-span-2 space-y-4">
+          <h2 className="text-xl font-bold mb-4">Demandes de rendez-vous</h2>
           
-          {loading && <p className="text-[#EAE6DA]/40">Chargement...</p>}
-
-          <div className="space-y-4">
-            {requests.map((req) => {
-              const isActive = isSessionActive(req.date);
-              const date = new Date(req.date);
-
-              return (
-                <div key={req.id} className="bg-[#59647A] p-6 rounded-2xl border border-white/10 flex flex-col md:flex-row justify-between items-center gap-6 shadow-lg hover:border-white/20 transition">
-                  
-                  {/* Info Patient */}
-                  <div className="flex items-center gap-4 w-full md:w-auto">
-                    <div className="w-12 h-12 bg-[#2F3A4A] rounded-full flex items-center justify-center font-bold text-xl text-[#EAE6DA] border border-white/10">
-                      {req.patient.username.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-lg text-[#EAE6DA]">{req.patient.username}</h3>
-                      <div className="flex items-center gap-2 text-[#EAE6DA]/60 text-sm mt-1">
-                        <Calendar size={14} /> {date.toLocaleDateString()} 
-                        <Clock size={14} className="ml-1"/> {date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex items-center gap-4">
-                    {req.status === 'PENDING' && (
-                      <div className="flex gap-3">
-                        <button onClick={() => handleAction(req.id, 'CONFIRMED')} className="bg-[#4ECDC4] text-[#2F3A4A] px-4 py-2 rounded-lg font-bold flex gap-2"><Check size={18}/> Accepter</button>
-                        <button onClick={() => handleAction(req.id, 'CANCELLED')} className="bg-[#FF6B6B]/20 text-[#FF6B6B] px-4 py-2 rounded-lg font-bold flex gap-2"><X size={18}/> Refuser</button>
-                      </div>
-                    )}
-
-                    {req.status === 'CONFIRMED' && (
-                      <div className="flex flex-col items-end gap-2">
-                        <span className="text-[#4ECDC4] text-sm font-bold bg-[#4ECDC4]/10 px-3 py-1 rounded-full border border-[#4ECDC4]/20">Confirmé</span>
-                        {isActive ? (
-                          <button onClick={() => openVideo(req.id)} className="bg-[#6C63FF] hover:bg-[#5a52d5] text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2 animate-pulse">
-                            <Video size={18} /> Lancer la séance
-                          </button>
-                        ) : <span className="text-xs text-[#EAE6DA]/40 italic">Lien dispo 15min avant</span>}
-                      </div>
-                    )}
-                    
-                    {req.status === 'CANCELLED' && <span className="text-[#EAE6DA]/30 font-bold text-sm">Refusé</span>}
+          {requests.map((req) => (
+            <div key={req.id} className="bg-[#59647A] p-6 rounded-2xl border border-white/10 flex justify-between items-center shadow-md">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-[#2F3A4A] rounded-full flex items-center justify-center font-bold text-[#EAE6DA] text-xl">
+                  {req.patient.username.charAt(0)}
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg">{req.patient.username}</h3>
+                  <div className="flex items-center gap-3 text-sm text-[#EAE6DA]/70">
+                    <span className="flex items-center gap-1"><Calendar size={14}/> {new Date(req.date).toLocaleDateString()}</span>
+                    <span className="flex items-center gap-1"><Clock size={14}/> {new Date(req.date).getHours()}h00</span>
+                    {/* Badge Type */}
+                    <span className={`px-2 py-0.5 rounded text-xs font-bold flex items-center gap-1 ${req.type === 'IN_PERSON' ? 'bg-[#FFD93D] text-[#2F3A4A]' : 'bg-[#4ECDC4] text-[#2F3A4A]'}`}>
+                      {req.type === 'IN_PERSON' ? <><MapPin size={10}/> Cabinet</> : <><Video size={10}/> Visio</>}
+                    </span>
                   </div>
                 </div>
-              );
-            })}
-            
-            {!loading && requests.length === 0 && <p className="text-[#EAE6DA]/40 italic text-center py-10">Aucune demande.</p>}
-          </div>
-        </div>
+              </div>
 
+              {/* Actions */}
+              <div className="flex items-center gap-3">
+                {req.status === 'PENDING' && (
+                  <>
+                    <button onClick={() => handleAction(req.id, 'CONFIRMED')} className="bg-[#4ECDC4] hover:bg-white text-[#2F3A4A] p-2 rounded-lg"><Check size={20}/></button>
+                    <button onClick={() => handleAction(req.id, 'CANCELLED')} className="bg-[#FF6B6B]/20 text-[#FF6B6B] hover:bg-[#FF6B6B]/40 p-2 rounded-lg"><X size={20}/></button>
+                  </>
+                )}
+                {req.status === 'CONFIRMED' && (
+                  req.type === 'REMOTE' ? (
+                    <button onClick={() => openVideo(req.id)} className="bg-[#6C63FF] hover:bg-[#5a52d5] text-white px-4 py-2 rounded-lg font-bold text-sm flex gap-2">
+                      <Video size={16}/> Lancer
+                    </button>
+                  ) : <span className="text-[#FFD93D] font-bold text-sm">Au Cabinet</span>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
