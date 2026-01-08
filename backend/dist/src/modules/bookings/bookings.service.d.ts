@@ -76,4 +76,13 @@ export declare class BookingsService {
         coachId: string;
         createdAt: Date;
     }>;
+    validateSession(bookingId: string, coachId: string): Promise<{
+        id: string;
+        date: Date;
+        status: string;
+        type: import(".prisma/client").$Enums.SessionType;
+        patientId: string;
+        coachId: string;
+        createdAt: Date;
+    }>;
 }

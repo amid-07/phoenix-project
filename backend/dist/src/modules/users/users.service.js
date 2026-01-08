@@ -12,15 +12,13 @@ const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 let UsersService = class UsersService {
     async createUser(data) {
-        console.log("📝 Tentative d'inscription pour :", data.email);
+        console.log("📝 Inscription/Maj pour :", data.email);
         let existingUser = null;
         if (data.email) {
             existingUser = await prisma.user.findUnique({ where: { email: data.email } });
         }
         if (existingUser) {
-            console.log("-> L'utilisateur existe déjà.");
             if (data.dailyCost) {
-                console.log("-> Mise à jour du coût journalier...");
                 return await prisma.user.update({
                     where: { id: existingUser.id },
                     data: { dailyCost: parseFloat(data.dailyCost) },
@@ -28,12 +26,12 @@ let UsersService = class UsersService {
             }
             return existingUser;
         }
-        console.log("-> Création d'un nouveau profil...");
         return await prisma.user.create({
             data: {
                 email: data.email,
                 password: data.password,
                 username: data.username,
+                role: data.role || 'USER',
                 addictionType: 'SMOKING',
                 dailyCost: parseFloat(data.dailyCost) || 0,
                 startDate: new Date(),
@@ -43,32 +41,21 @@ let UsersService = class UsersService {
         });
     }
     async updateUserCost(userId, cost) {
-        console.log(`🔄 Mise à jour du coût pour ID ${userId} -> ${cost}€`);
         return await prisma.user.update({
             where: { id: userId },
-            data: {
-                dailyCost: cost,
-                startDate: new Date()
-            },
+            data: { dailyCost: cost, startDate: new Date() },
         });
     }
     async loginUser(data) {
-        const user = await prisma.user.findUnique({
-            where: { email: data.email },
-        });
-        if (!user || user.password !== data.password) {
+        const user = await prisma.user.findUnique({ where: { email: data.email } });
+        if (!user || user.password !== data.password)
             return null;
-        }
         return user;
     }
     async reportRelapse(userId) {
-        console.log(`⚠️ Rechute signalée pour l'utilisateur ${userId}`);
         return await prisma.user.update({
             where: { id: userId },
-            data: {
-                startDate: new Date(),
-                currentStreak: 0
-            },
+            data: { startDate: new Date(), currentStreak: 0 },
         });
     }
     async getUserStats(userId) {
@@ -83,11 +70,11 @@ let UsersService = class UsersService {
             const reservationsCount = await prisma.booking.count({
                 where: { coachId: userId }
             });
-            const confirmedBookings = await prisma.booking.count({
-                where: { coachId: userId, status: 'CONFIRMED' }
+            const completedBookings = await prisma.booking.count({
+                where: { coachId: userId, status: 'COMPLETED' }
             });
             const hourlyRate = ((_a = user.professionalProfile) === null || _a === void 0 ? void 0 : _a.hourlyRate) || 0;
-            const totalEarnings = confirmedBookings * hourlyRate;
+            const totalEarnings = completedBookings * hourlyRate;
             return {
                 role: 'COACH',
                 username: user.username,
@@ -121,13 +108,7 @@ let UsersService = class UsersService {
                     where: { userId: userId, badgeId: badge.id }
                 });
                 if (!alreadyHas) {
-                    console.log(`🎉 Nouveau badge débloqué pour ${userId}: ${badge.name}`);
-                    await prisma.userBadge.create({
-                        data: {
-                            userId: userId,
-                            badgeId: badge.id
-                        }
-                    });
+                    await prisma.userBadge.create({ data: { userId: userId, badgeId: badge.id } });
                 }
             }
         }

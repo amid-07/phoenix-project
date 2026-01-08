@@ -12,7 +12,7 @@ const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 let BookingsService = class BookingsService {
     async createBooking(patientId, coachId, dateString, availabilityId) {
-        console.log(`📅 Réservation : Patient ${patientId} -> Coach ${coachId}`);
+        console.log(`📅 Réservation demandée : Patient ${patientId} -> Coach ${coachId}`);
         let sessionType = 'REMOTE';
         if (availabilityId) {
             const slot = await prisma.availability.findUnique({
@@ -56,6 +56,22 @@ let BookingsService = class BookingsService {
         return await prisma.booking.update({
             where: { id: bookingId },
             data: { status: newStatus }
+        });
+    }
+    async validateSession(bookingId, coachId) {
+        const booking = await prisma.booking.findUnique({
+            where: { id: bookingId }
+        });
+        if (!booking)
+            throw new Error("Réservation introuvable ou code invalide.");
+        if (booking.coachId !== coachId)
+            throw new Error("Ce n'est pas votre client !");
+        if (booking.status === 'COMPLETED')
+            throw new Error("Cette séance a déjà été validée.");
+        console.log(`✅ Séance validée via Scan : ${bookingId}`);
+        return await prisma.booking.update({
+            where: { id: bookingId },
+            data: { status: 'COMPLETED' }
         });
     }
 };

@@ -79,4 +79,15 @@ export declare class BookingsController {
         coachId: string;
         createdAt: Date;
     }>;
+    scanTicket(body: any): Promise<{
+        id: string;
+        date: Date;
+        status: string;
+        type: import(".prisma/client").$Enums.SessionType;
+        patientId: string;
+        coachId: string;
+        createdAt: Date;
+    } | {
+        error: any;
+    }>;
 }

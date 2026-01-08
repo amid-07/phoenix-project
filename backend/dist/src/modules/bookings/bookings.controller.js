@@ -31,6 +31,14 @@ let BookingsController = class BookingsController {
     async changeStatus(id, status) {
         return this.bookingsService.updateStatus(id, status);
     }
+    async scanTicket(body) {
+        try {
+            return await this.bookingsService.validateSession(body.bookingId, body.coachId);
+        }
+        catch (e) {
+            return { error: e.message };
+        }
+    }
 };
 exports.BookingsController = BookingsController;
 __decorate([
@@ -62,6 +70,13 @@ __decorate([
     __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Promise)
 ], BookingsController.prototype, "changeStatus", null);
+__decorate([
+    (0, common_1.Post)('scan'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], BookingsController.prototype, "scanTicket", null);
 exports.BookingsController = BookingsController = __decorate([
     (0, common_1.Controller)('bookings'),
     __metadata("design:paramtypes", [bookings_service_1.BookingsService])
