@@ -17,45 +17,52 @@ export default function CoachDetailPage() {
   const [selectedDayObj, setSelectedDayObj] = useState(new Date());
   const [selectedSlot, setSelectedSlot] = useState(null);
 
-  // URL API
+  // Avis
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState('');
+
+  // ⚠️ URL API
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
   useEffect(() => {
-    fetchDetails();
-  }, []);
-
-  const fetchDetails = async () => {
-    try {
-      const res = await fetch(`${API_URL}/marketplace/coach/${params.id}`, {
-        headers: { 'ngrok-skip-browser-warning': 'true' }
-      });
-      const data = await res.json();
-      setCoach(data);
-      if (data.professionalProfile?.availabilities) {
-        setAvailabilities(data.professionalProfile.availabilities);
+    const fetchDetails = async () => {
+      try {
+        const res = await fetch(`${API_URL}/marketplace/coach/${params.id}`, {
+          headers: { 'ngrok-skip-browser-warning': 'true' }
+        });
+        const data = await res.json();
+        setCoach(data);
+        if (data.professionalProfile?.availabilities) {
+          setAvailabilities(data.professionalProfile.availabilities);
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
       }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+    fetchDetails();
+  }, [params.id]);
 
-  // --- FONCTIONS DATE ---
-  const toDateString = (date) => {
-    return date.toISOString().split('T')[0]; // Format YYYY-MM-DD
+  // --- CORRECTION DU DÉCALAGE DE DATE ---
+  // Cette fonction force la date locale (YYYY-MM-DD) sans conversion UTC
+  const toLocalDateKey = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   };
 
   const hasSlots = (day) => {
     if (!day) return false;
-    const dayStr = toDateString(day);
-    return availabilities.some(slot => toDateString(new Date(slot.date)) === dayStr);
+    const dayKey = toLocalDateKey(day);
+    return availabilities.some(slot => toLocalDateKey(new Date(slot.date)) === dayKey);
   };
 
   const getSlotsForSelectedDay = () => {
     if (!selectedDayObj) return [];
-    const dayStr = toDateString(selectedDayObj);
-    return availabilities.filter(slot => toDateString(new Date(slot.date)) === dayStr);
+    const dayKey = toLocalDateKey(selectedDayObj);
+    return availabilities.filter(slot => toLocalDateKey(new Date(slot.date)) === dayKey);
   };
 
   // --- RENDU CALENDRIER ---
@@ -77,9 +84,14 @@ export default function CoachDetailPage() {
         {days.map((day, index) => {
           if (!day) return <div key={index}></div>;
           
-          const isSelected = selectedDayObj && toDateString(day) === toDateString(selectedDayObj);
+          // Comparaison avec la clé locale corrigée
+          const isSelected = selectedDayObj && toLocalDateKey(day) === toLocalDateKey(selectedDayObj);
           const available = hasSlots(day);
-          const isPast = day < new Date().setHours(0,0,0,0);
+          
+          // On compare avec "hier" pour désactiver les jours passés
+          const today = new Date();
+          today.setHours(0,0,0,0);
+          const isPast = day < today;
 
           return (
             <button
@@ -104,7 +116,9 @@ export default function CoachDetailPage() {
 
   const handleBooking = async () => {
     if (!selectedSlot) return;
-    if(!confirm(`Confirmer ?`)) return;
+    const dateReadable = new Date(selectedSlot.date).toLocaleString('fr-FR', { dateStyle: 'full', timeStyle: 'short' });
+    
+    if(!confirm(`Confirmer la réservation pour le ${dateReadable} ?`)) return;
 
     try {
       const userId = localStorage.getItem('userId');
@@ -118,8 +132,13 @@ export default function CoachDetailPage() {
           availabilityId: selectedSlot.id
         })
       });
-      if (res.ok) router.push('/dashboard/bookings');
-    } catch (e) { alert("Erreur"); }
+
+      if (res.ok) {
+        router.push('/dashboard/bookings');
+      } else {
+        alert("Erreur lors de la réservation");
+      }
+    } catch (e) { alert("Erreur réseau"); }
   };
 
   if (loading || !coach) return <div className="p-10 text-center text-[#EAE6DA]">Chargement...</div>;
@@ -136,13 +155,16 @@ export default function CoachDetailPage() {
         {/* Profil */}
         <div className="bg-[#59647A] p-6 rounded-2xl h-fit border border-white/10 shadow-lg">
            <div className="text-center mb-6">
-             <div className="w-24 h-24 bg-[#EAE6DA] rounded-full flex items-center justify-center text-4xl font-bold text-[#2F3A4A] mx-auto mb-4">{coach.username.charAt(0)}</div>
+             <div className="w-24 h-24 bg-[#EAE6DA] rounded-full flex items-center justify-center text-4xl font-bold text-[#2F3A4A] mx-auto mb-4">{coach.username.charAt(0).toUpperCase()}</div>
              <h1 className="text-2xl font-bold">{coach.username}</h1>
              <p className="text-[#EAE6DA]/60">{profile.title}</p>
            </div>
            <div className="border-t border-white/10 my-4"></div>
            <div className="flex justify-between text-sm">
              <span>Tarif</span> <span className="text-[#4ECDC4] font-bold">{profile.hourlyRate}€</span>
+           </div>
+           <div className="flex justify-between text-sm mt-2">
+             <span>Avis</span> <span className="text-[#FFD93D] font-bold flex items-center gap-1"><Star size={12} fill="currentColor"/> {profile.rating}</span>
            </div>
         </div>
 
@@ -160,14 +182,14 @@ export default function CoachDetailPage() {
 
            {/* Liste des créneaux */}
            <div className="pt-4 border-t border-white/10">
-              <h3 className="mb-4 font-bold text-[#EAE6DA]/80">
-                Horaires pour le {selectedDayObj.toLocaleDateString()}
+              <h3 className="mb-4 font-bold text-[#EAE6DA]/80 capitalize">
+                {selectedDayObj.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
               </h3>
               
               {daySlots.length > 0 ? (
                 <div className="grid grid-cols-3 gap-3">
                   {daySlots.map(slot => {
-                    const time = new Date(slot.date).getHours() + "h00";
+                    const time = new Date(slot.date).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
                     const isSelected = selectedSlot?.id === slot.id;
                     return (
                       <button
