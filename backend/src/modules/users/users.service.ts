@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 @Injectable()
 export class UsersService {
   
-  // --- 1. INSCRIPTION ---
+  // --- 1. INSCRIPTION (ou Mise à jour) ---
   async createUser(data: any) {
     console.log("📝 Inscription/Maj pour :", data.email);
 
@@ -16,6 +16,7 @@ export class UsersService {
     }
 
     if (existingUser) {
+      // Si l'utilisateur existe, on met à jour son coût si fourni (via le Quiz)
       if (data.dailyCost) {
         return await prisma.user.update({
           where: { id: existingUser.id },
@@ -25,12 +26,13 @@ export class UsersService {
       return existingUser;
     }
 
+    // Création d'un nouveau profil
     return await prisma.user.create({
       data: {
         email: data.email,
-        password: data.password,
+        password: data.password, // À hasher en production
         username: data.username,
-        role: data.role || 'USER', // Permet de créer des coachs si besoin via l'API, sinon USER par défaut
+        role: data.role || 'USER', // Par défaut USER, mais permet de créer des COACHS via Postman/Seed
         addictionType: 'SMOKING',
         dailyCost: parseFloat(data.dailyCost) || 0,
         startDate: new Date(),
@@ -40,7 +42,7 @@ export class UsersService {
     });
   }
 
-  // --- 2. MISE À JOUR COÛT ---
+  // --- 2. MISE À JOUR DU COÛT ---
   async updateUserCost(userId: string, cost: number) {
     return await prisma.user.update({
       where: { id: userId },
@@ -55,7 +57,7 @@ export class UsersService {
     return user;
   }
 
-  // --- 4. RECHUTE ---
+  // --- 4. SIGNALER UNE RECHUTE ---
   async reportRelapse(userId: string) {
     return await prisma.user.update({
       where: { id: userId },
@@ -63,52 +65,62 @@ export class UsersService {
     });
   }
 
-  // --- 5. CALCUL DES STATS (Cœur du Dashboard) ---
+  // --- 5. CALCUL DES STATS (Le Cœur du Système) ---
   async getUserStats(userId: string) {
     const user = await prisma.user.findUnique({ 
       where: { id: userId },
-      include: { professionalProfile: true } // On inclut le profil pro si c'est un coach
+      include: { professionalProfile: true } 
     });
     
     if (!user) return { days: 0, money: 0, badges: [] };
 
-    // ========================
+    // ==========================================
     // CAS A : C'EST UN COACH
-    // ========================
+    // ==========================================
     if (user.role === 'COACH') {
       // 1. Nombre total de demandes reçues
       const reservationsCount = await prisma.booking.count({
         where: { coachId: userId }
       });
 
-      // 2. Nombre de séances TERMINÉES (Validées par QR ou manuellement)
-      const completedBookings = await prisma.booking.count({
-        where: { coachId: userId, status: 'COMPLETED' }
+      // 2. Nombre de séances PAYÉES
+      // Règle : On compte l'argent si :
+      // - La séance est terminée par scan (COMPLETED)
+      // - OU La séance est confirmée et à distance (CONFIRMED + REMOTE)
+      const paidBookings = await prisma.booking.count({
+        where: { 
+          coachId: userId,
+          OR: [
+            { status: 'COMPLETED' },                 // Cabinet (Scan validé)
+            { status: 'CONFIRMED', type: 'REMOTE' }  // Visio (Payé dès la confirmation)
+          ]
+        }
       });
 
-      // 3. Calcul des gains : Séances terminées * Tarif Horaire
+      // 3. Calcul des gains
       const hourlyRate = user.professionalProfile?.hourlyRate || 0;
-      const totalEarnings = completedBookings * hourlyRate;
+      const totalEarnings = paidBookings * hourlyRate;
 
       return {
         role: 'COACH',
         username: user.username,
         reservationsCount: reservationsCount,
-        earnings: totalEarnings, // L'argent réel gagné
+        earnings: totalEarnings,
         hourlyRate: hourlyRate
       };
     }
 
-    // ========================
+    // ==========================================
     // CAS B : C'EST UN PATIENT
-    // ========================
+    // ==========================================
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - user.startDate.getTime());
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)); 
     const money = diffDays * (user.dailyCost || 0);
 
-    // Vérification des badges
+    // Vérification des badges (Gamification)
     await this.checkAndAwardBadges(userId, diffDays);
+    
     const unlockedBadges = await prisma.userBadge.findMany({
       where: { userId: userId },
       include: { badge: true }
@@ -123,7 +135,7 @@ export class UsersService {
     };
   }
 
-  // --- Fonction Privée Badges ---
+  // --- Fonction Privée : Moteur de Badges ---
   private async checkAndAwardBadges(userId: string, currentDays: number) {
     const allBadges = await prisma.badge.findMany();
     for (const badge of allBadges) {

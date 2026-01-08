@@ -70,11 +70,17 @@ let UsersService = class UsersService {
             const reservationsCount = await prisma.booking.count({
                 where: { coachId: userId }
             });
-            const completedBookings = await prisma.booking.count({
-                where: { coachId: userId, status: 'COMPLETED' }
+            const paidBookings = await prisma.booking.count({
+                where: {
+                    coachId: userId,
+                    OR: [
+                        { status: 'COMPLETED' },
+                        { status: 'CONFIRMED', type: 'REMOTE' }
+                    ]
+                }
             });
             const hourlyRate = ((_a = user.professionalProfile) === null || _a === void 0 ? void 0 : _a.hourlyRate) || 0;
-            const totalEarnings = completedBookings * hourlyRate;
+            const totalEarnings = paidBookings * hourlyRate;
             return {
                 role: 'COACH',
                 username: user.username,
