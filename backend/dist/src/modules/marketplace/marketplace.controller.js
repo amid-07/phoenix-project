@@ -22,8 +22,14 @@ let MarketplaceController = class MarketplaceController {
     async getCoaches() {
         return this.marketplaceService.getAllCoaches();
     }
+    async search(query) {
+        return this.marketplaceService.searchCoaches(query);
+    }
     async getDetails(id) {
         return this.marketplaceService.getCoachDetails(id);
+    }
+    async updateProfile(body) {
+        return this.marketplaceService.updateCoachProfile(body.userId, body.data);
     }
     async postReview(body) {
         return this.marketplaceService.addReview(body.userId, body.coachId, body.rating, body.comment);
@@ -46,12 +52,26 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], MarketplaceController.prototype, "getCoaches", null);
 __decorate([
+    (0, common_1.Get)('search'),
+    __param(0, (0, common_1.Query)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], MarketplaceController.prototype, "search", null);
+__decorate([
     (0, common_1.Get)('coach/:id'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], MarketplaceController.prototype, "getDetails", null);
+__decorate([
+    (0, common_1.Patch)('profile'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], MarketplaceController.prototype, "updateProfile", null);
 __decorate([
     (0, common_1.Post)('review'),
     __param(0, (0, common_1.Body)()),

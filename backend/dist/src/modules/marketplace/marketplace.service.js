@@ -19,6 +19,32 @@ let MarketplaceService = class MarketplaceService {
             },
         });
     }
+    async searchCoaches(query) {
+        const { search, city, type } = query;
+        return await prisma.user.findMany({
+            where: {
+                role: 'COACH',
+                professionalProfile: {
+                    AND: [
+                        search ? {
+                            OR: [
+                                { title: { contains: search, mode: 'insensitive' } },
+                                { bio: { contains: search, mode: 'insensitive' } },
+                                { user: { username: { contains: search, mode: 'insensitive' } } }
+                            ]
+                        } : {},
+                        city ? { address: { contains: city, mode: 'insensitive' } } : {},
+                        type ? {
+                            availabilities: {
+                                some: { type: type, isBooked: false }
+                            }
+                        } : {}
+                    ]
+                }
+            },
+            include: { professionalProfile: true },
+        });
+    }
     async getCoachDetails(coachUserId) {
         const coach = await prisma.user.findUnique({
             where: { id: coachUserId },
@@ -44,6 +70,25 @@ let MarketplaceService = class MarketplaceService {
         });
         return coach;
     }
+    async updateCoachProfile(userId, data) {
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            include: { professionalProfile: true }
+        });
+        if (!user || !user.professionalProfile) {
+            throw new Error("Profil introuvable");
+        }
+        return await prisma.professionalProfile.update({
+            where: { id: user.professionalProfile.id },
+            data: {
+                title: data.title,
+                bio: data.bio,
+                hourlyRate: parseFloat(data.hourlyRate),
+                address: data.address,
+                specialties: data.specialties
+            }
+        });
+    }
     async addReview(userId, coachId, rating, comment) {
         const coach = await prisma.user.findUnique({
             where: { id: coachId },
@@ -62,14 +107,12 @@ let MarketplaceService = class MarketplaceService {
         });
     }
     async addAvailability(userId, dateString, type) {
-        console.log(`📅 Ajout dispo pour ${userId} : ${dateString} (${type})`);
         const user = await prisma.user.findUnique({
             where: { id: userId },
             include: { professionalProfile: true }
         });
-        if (!user || !user.professionalProfile) {
+        if (!user || !user.professionalProfile)
             throw new Error("Profil pro introuvable");
-        }
         return await prisma.availability.create({
             data: {
                 date: new Date(dateString),

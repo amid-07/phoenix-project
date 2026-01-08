@@ -27,6 +27,31 @@ export declare class MarketplaceController {
         createdAt: Date;
         updatedAt: Date;
     })[]>;
+    search(query: any): Promise<({
+        professionalProfile: {
+            id: string;
+            title: string;
+            bio: string;
+            specialties: string[];
+            hourlyRate: number;
+            rating: number;
+            address: string | null;
+            userId: string;
+        };
+    } & {
+        id: string;
+        email: string;
+        password: string;
+        username: string | null;
+        role: import(".prisma/client").$Enums.Role;
+        addictionType: import(".prisma/client").$Enums.AddictionType;
+        dailyCost: number | null;
+        startDate: Date;
+        moneySaved: number;
+        currentStreak: number;
+        createdAt: Date;
+        updatedAt: Date;
+    })[]>;
     getDetails(id: string): Promise<{
         professionalProfile: {
             availabilities: {
@@ -71,6 +96,16 @@ export declare class MarketplaceController {
         currentStreak: number;
         createdAt: Date;
         updatedAt: Date;
+    }>;
+    updateProfile(body: any): Promise<{
+        id: string;
+        title: string;
+        bio: string;
+        specialties: string[];
+        hourlyRate: number;
+        rating: number;
+        address: string | null;
+        userId: string;
     }>;
     postReview(body: any): Promise<{
         id: string;

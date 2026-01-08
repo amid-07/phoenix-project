@@ -24,6 +24,35 @@ export declare class MarketplaceService {
         createdAt: Date;
         updatedAt: Date;
     })[]>;
+    searchCoaches(query: {
+        search?: string;
+        city?: string;
+        type?: 'REMOTE' | 'IN_PERSON';
+    }): Promise<({
+        professionalProfile: {
+            id: string;
+            title: string;
+            bio: string;
+            specialties: string[];
+            hourlyRate: number;
+            rating: number;
+            address: string | null;
+            userId: string;
+        };
+    } & {
+        id: string;
+        email: string;
+        password: string;
+        username: string | null;
+        role: import(".prisma/client").$Enums.Role;
+        addictionType: import(".prisma/client").$Enums.AddictionType;
+        dailyCost: number | null;
+        startDate: Date;
+        moneySaved: number;
+        currentStreak: number;
+        createdAt: Date;
+        updatedAt: Date;
+    })[]>;
     getCoachDetails(coachUserId: string): Promise<{
         professionalProfile: {
             availabilities: {
@@ -68,6 +97,16 @@ export declare class MarketplaceService {
         currentStreak: number;
         createdAt: Date;
         updatedAt: Date;
+    }>;
+    updateCoachProfile(userId: string, data: any): Promise<{
+        id: string;
+        title: string;
+        bio: string;
+        specialties: string[];
+        hourlyRate: number;
+        rating: number;
+        address: string | null;
+        userId: string;
     }>;
     addReview(userId: string, coachId: string, rating: number, comment: string): Promise<{
         id: string;
