@@ -4,14 +4,14 @@ import { Send, Bot, User, RefreshCw, Sparkles } from 'lucide-react';
 
 export default function ChatPage() {
   const [messages, setMessages] = useState([
-    { id: 1, text: "Salam ! Je suis TAFSUT Companion. Raconte-moi ce qui se passe, je t'écoute.", sender: 'ai' }
+    { id: 1, text: "Salam ! Je suis TAFSUT Companion. Raconte-moi ce qui se passe.", sender: 'ai' }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
 
-  // ⚠️ LOCALHOST
-  const API_URL = "http://localhost:3000";
+  // ⚠️ URL API
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -29,15 +29,21 @@ export default function ChatPage() {
     try {
       const response = await fetch(`${API_URL}/ai-coach/chat`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+            'Content-Type': 'application/json',
+            // 👇 C'EST ÇA QUI MANQUAIT POUR LE MOBILE
+            'ngrok-skip-browser-warning': 'true' 
+        },
         body: JSON.stringify({ message: userMsg.text })
       });
       
       const data = await response.json();
+      
       const aiMsg = { id: Date.now() + 1, text: data.text, sender: 'ai' };
       setMessages(prev => [...prev, aiMsg]);
     } catch (error) {
-      const errorMsg = { id: Date.now() + 1, text: "Erreur de connexion.", sender: 'ai' };
+      console.error(error);
+      const errorMsg = { id: Date.now() + 1, text: "Erreur de connexion. Vérifiez votre réseau.", sender: 'ai' };
       setMessages(prev => [...prev, errorMsg]);
     } finally {
       setLoading(false);
@@ -63,21 +69,14 @@ export default function ChatPage() {
         </div>
       </div>
 
-      {/* ZONE MESSAGES */}
+      {/* MESSAGES */}
       <div className="flex-1 bg-[#252E3E] overflow-y-auto p-6 space-y-6 relative">
-        {/* Fond décoratif subtil */}
-        <div className="absolute inset-0 opacity-[0.02] bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] pointer-events-none"></div>
-
         {messages.map((msg) => (
           <div key={msg.id} className={`flex w-full ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div className={`flex max-w-[80%] gap-3 ${msg.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-              
-              {/* Avatar miniature */}
               <div className={`w-8 h-8 rounded-full flex shrink-0 items-center justify-center mt-auto ${msg.sender === 'user' ? 'bg-[#4ECDC4] text-[#2F3A4A]' : 'bg-[#EAE6DA] text-[#2F3A4A]'}`}>
                 {msg.sender === 'user' ? <User size={16}/> : <Bot size={16}/>}
               </div>
-
-              {/* Bulle */}
               <div className={`p-4 rounded-2xl shadow-md text-sm md:text-base leading-relaxed ${
                 msg.sender === 'user' 
                   ? 'bg-[#4ECDC4] text-[#2F3A4A] rounded-br-none' 
@@ -88,8 +87,6 @@ export default function ChatPage() {
             </div>
           </div>
         ))}
-        
-        {/* Indicateur de frappe */}
         {loading && (
           <div className="flex justify-start w-full">
              <div className="bg-[#59647A] p-3 rounded-2xl rounded-bl-none border border-white/5 flex items-center gap-2 ml-11">
