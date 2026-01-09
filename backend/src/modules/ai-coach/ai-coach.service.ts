@@ -12,7 +12,7 @@ export class AiCoachService {
     this.genAI = new GoogleGenerativeAI(apiKey);
     
     // On utilise le modèle expérimental 2.0 pour une meilleure compréhension du Darija et des nuances
-    this.model = this.genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+    this.model = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
   }
 
   // --- CHAT TAFSUT COMPANION ---
