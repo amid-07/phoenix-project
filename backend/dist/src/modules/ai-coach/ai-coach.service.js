@@ -18,23 +18,39 @@ let AiCoachService = class AiCoachService {
         this.configService = configService;
         const apiKey = this.configService.get('GEMINI_API_KEY');
         this.genAI = new generative_ai_1.GoogleGenerativeAI(apiKey);
-        this.model = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+        this.model = this.genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
     }
     async getAdvice(userMessage) {
         const systemPrompt = `
-      RÔLE :
-      Tu es Phoenix, un assistant virtuel spécialisé EXCLUSIVEMENT dans l'aide au sevrage (drogue, jeu, alcool, écrans, tabac) et le soutien psychologique.
+    ROLE:
+    You are the TAFSUT Companion, a specialized AI assistant for addiction recovery and mental health in the MENA region.
+    You are NOT a general-purpose assistant. You are a supportive, knowledgeable peer.
 
-      RÈGLES DE SÉCURITÉ (OBLIGATOIRES) :
-      1. **HORS-SUJET :** Si l'utilisateur te parle de sujets sans rapport avec sa santé mentale ou ses habitudes (ex: code, cuisine, politique, sport, mathématiques), tu dois REFUSER de répondre. Dis gentiment : "Je suis là uniquement pour t'aider dans ton parcours de rétablissement, pas pour discuter de ce sujet."
-      2. **DISCLAIMER MÉDICAL :** Tu n'es PAS médecin. Ne fais jamais de diagnostic médical, ne prescris jamais de médicaments. Rappelle que tu es une IA de soutien.
-      3. **URGENCE :** Si l'utilisateur mentionne une envie de suicide, d'automutilation ou une overdose, dis-lui IMMÉDIATEMENT d'appeler les urgences (112 ou 15) et ne donne pas d'autres conseils.
+    LANGUAGE :
+    You must strictly mirror the language the user speaks.
+    1. Darija (Moroccan Arabic): Speak natural, street-smart Darija. DO NOT use Modern Standard Arabic (Fusha). Sound like a local friend. Use the script (Latin/Arabizi or Arabic) the user uses.
+    2. French: Conversational and warm. Avoid overly formal academic French.
+    3. English: Natural, modern, and direct. Use contractions ("don't").
 
-      TON :
-      Empathique, encourageant, court et direct.
+    ⛔ CRITICAL NEGATIVE CONSTRAINTS (Do Not Do These):
+    1. NO Generic Filler Questions: NEVER end a response with "How can I help you?", "What can I do for you?", or "Do you want to talk about it?". This is strictly forbidden.
+    2. NO Robotic Empathy: NEVER say "I understand that you are [emotion]."
+    3. NO Medical Advice: NEVER recommend specific medications.
+    4. NO General Topics: Refuse to answer questions about cooking, sports, etc.
 
-      CONTEXTE UTILISATEUR :
-      L'utilisateur te dit : "${userMessage}"
+    ✅ RESPONSE GUIDELINES:
+    1. Statement-First Approach: When a user shares a feeling, give them a perspective, a fact, or a tool immediately. Do not ask them what they want.
+    2. Questions Only When Necessary: You may only ask a question if you need specific information to give a better answer (e.g., clarifying a safety risk).
+    3. Legal Safe-Guarding (Meds/Drugs):
+       If a user asks for pills/meds: "I can't give medical advice or prescribe pills—that's for doctors. Check out the Experts Page to find a pro who can help."
+    4. Scope Restriction (Off-Topic):
+       If a user asks for a recipe or general info: "I'm strictly here for your mental health. I can't help with that."
+
+    ⚠️ CRISIS PROTOCOL:
+    If the user indicates immediate self-harm, overdose, or a life-threatening emergency, bypass all conversational rules and immediately provide local emergency numbers (e.g., "Call 15 or 19 immediately").
+
+    USER INPUT:
+    "${userMessage}"
     `;
         try {
             const result = await this.model.generateContent(systemPrompt);
@@ -48,7 +64,9 @@ let AiCoachService = class AiCoachService {
     async getDailyChallenge() {
         const prompt = `
       Génère un seul défi quotidien (max 20 mots) pour combattre l'addiction.
-      Positif et réalisable en 5 min. Pas de guillemets.
+      Ton : Motivant, direct, tutoiement.
+      Langue : Français.
+      Pas de guillemets.
     `;
         const result = await this.model.generateContent(prompt);
         return (await result.response).text();
@@ -60,29 +78,28 @@ let AiCoachService = class AiCoachService {
                 stressLevel: 0,
                 motivation: 0,
                 triggers: [],
-                summary: "Pas assez de données."
+                summary: "Pas assez de données pour une analyse."
             });
         }
-        const textData = journalEntries.map(entry => `- Date: ${entry.createdAt.toDateString()}, Humeur: ${entry.mood}/5, Texte: "${entry.content}"`).join('\n');
+        const textData = journalEntries.map(entry => `- ${entry.createdAt.toDateString()} (Humeur ${entry.mood}/5): "${entry.content}"`).join('\n');
         const prompt = `
       Analyse ces entrées de journal d'un patient en sevrage :
       ${textData}
 
-      Tu dois agir comme un algorithme d'analyse psychologique.
-      Ne réponds PAS avec du texte normal. Réponds UNIQUEMENT avec un objet JSON valide suivant cette structure exacte :
+      Agis comme un algorithme psychologique expert.
+      Réponds UNIQUEMENT avec un objet JSON valide suivant cette structure exacte :
       {
-        "score": (Nombre entre 0 et 100, où 100 est une santé mentale parfaite),
-        "stressLevel": (Nombre entre 0 et 100, niveau de stress détecté),
-        "motivation": (Nombre entre 0 et 100, niveau de détermination perçu),
-        "triggers": (Tableau de strings, liste des 3 principaux déclencheurs identifiés ex: ["Travail", "Solitude"]),
-        "summary": (String, une phrase de conseil percutante de 15 mots max)
+        "score": (Nombre 0-100, santé mentale globale),
+        "stressLevel": (Nombre 0-100),
+        "motivation": (Nombre 0-100),
+        "triggers": (Tableau de strings, max 3 déclencheurs identifiés),
+        "summary": (String, conseil percutant en Français de 15 mots max)
       }
-      Réponds en Français. Pas de balises markdown, juste le JSON brut.
+      Pas de markdown, juste le JSON brut.
     `;
         const result = await this.model.generateContent(prompt);
         let text = (await result.response).text();
-        text = text.replace(/```json/g, '').replace(/```/g, '').trim();
-        return text;
+        return text.replace(/```json/g, '').replace(/```/g, '').trim();
     }
 };
 exports.AiCoachService = AiCoachService;

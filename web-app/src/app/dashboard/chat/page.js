@@ -1,17 +1,17 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
-import { Send, Bot, User, RefreshCw } from 'lucide-react';
+import { Send, Bot, User, RefreshCw, Sparkles } from 'lucide-react';
 
 export default function ChatPage() {
   const [messages, setMessages] = useState([
-    { id: 1, text: "Bonjour ! Je suis l'IA TAFSUT. Je suis là pour t'écouter et te soutenir.", sender: 'ai' }
+    { id: 1, text: "Salam ! Je suis TAFSUT Companion. Raconte-moi ce qui se passe, je t'écoute.", sender: 'ai' }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
 
-  // ⚠️ UTILISEZ LOCALHOST POUR LE WEB
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+  // ⚠️ LOCALHOST
+  const API_URL = "http://localhost:3000";
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -29,21 +29,15 @@ export default function ChatPage() {
     try {
       const response = await fetch(`${API_URL}/ai-coach/chat`, {
         method: 'POST',
-        headers: { 
-            'Content-Type': 'application/json',
-            'ngrok-skip-browser-warning': 'true' // <--- FIX
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: userMsg.text })
       });
       
       const data = await response.json();
-      
-      // Si l'IA renvoie le message d'erreur générique, on l'affiche quand même
       const aiMsg = { id: Date.now() + 1, text: data.text, sender: 'ai' };
       setMessages(prev => [...prev, aiMsg]);
     } catch (error) {
-      console.error(error);
-      const errorMsg = { id: Date.now() + 1, text: "Erreur de connexion avec le serveur.", sender: 'ai' };
+      const errorMsg = { id: Date.now() + 1, text: "Erreur de connexion.", sender: 'ai' };
       setMessages(prev => [...prev, errorMsg]);
     } finally {
       setLoading(false);
@@ -51,61 +45,82 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-100px)] max-w-4xl mx-auto">
+    <div className="flex flex-col h-[calc(100vh-100px)] max-w-4xl mx-auto bg-[#2F3A4A] rounded-2xl shadow-2xl overflow-hidden border border-white/5">
       
-      {/* En-tête du Chat */}
-      <div className="bg-surface p-4 rounded-t-2xl border-b border-gray-600 flex items-center gap-3 shadow-md">
-        <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-background">
-          <Bot size={24} />
+      {/* HEADER */}
+      <div className="bg-[#59647A] p-4 flex items-center gap-4 border-b border-white/10 shadow-md z-10">
+        <div className="relative">
+           <div className="w-12 h-12 bg-[#EAE6DA] rounded-full flex items-center justify-center text-[#2F3A4A] shadow-inner">
+             <Bot size={28} />
+           </div>
+           <span className="absolute bottom-0 right-0 w-3 h-3 bg-[#4ECDC4] border-2 border-[#59647A] rounded-full animate-pulse"></span>
         </div>
         <div>
-          <h2 className="font-bold text-lg text-primary">Coach TAFSUT</h2>
-          <p className="text-xs text-accent flex items-center gap-1">
-            <span className="w-2 h-2 bg-accent rounded-full animate-pulse"></span> En ligne
+          <h2 className="font-bold text-xl text-[#EAE6DA]">TAFSUT Companion</h2>
+          <p className="text-xs text-[#EAE6DA]/60 flex items-center gap-1">
+            <Sparkles size={12} className="text-[#FFD93D]"/> IA Thérapeutique Active
           </p>
         </div>
       </div>
 
-      {/* Zone de messages */}
-      <div className="flex-1 bg-background/50 overflow-y-auto p-6 space-y-4 border-x border-gray-700">
+      {/* ZONE MESSAGES */}
+      <div className="flex-1 bg-[#252E3E] overflow-y-auto p-6 space-y-6 relative">
+        {/* Fond décoratif subtil */}
+        <div className="absolute inset-0 opacity-[0.02] bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] pointer-events-none"></div>
+
         {messages.map((msg) => (
-          <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[75%] p-4 rounded-2xl shadow-sm ${
-              msg.sender === 'user' 
-                ? 'bg-primary text-background font-medium rounded-br-none' // User: Crème texte foncé
-                : 'bg-surface text-white rounded-bl-none' // IA: Bleu gris texte blanc
-            }`}>
-              {msg.text}
+          <div key={msg.id} className={`flex w-full ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+            <div className={`flex max-w-[80%] gap-3 ${msg.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+              
+              {/* Avatar miniature */}
+              <div className={`w-8 h-8 rounded-full flex shrink-0 items-center justify-center mt-auto ${msg.sender === 'user' ? 'bg-[#4ECDC4] text-[#2F3A4A]' : 'bg-[#EAE6DA] text-[#2F3A4A]'}`}>
+                {msg.sender === 'user' ? <User size={16}/> : <Bot size={16}/>}
+              </div>
+
+              {/* Bulle */}
+              <div className={`p-4 rounded-2xl shadow-md text-sm md:text-base leading-relaxed ${
+                msg.sender === 'user' 
+                  ? 'bg-[#4ECDC4] text-[#2F3A4A] rounded-br-none' 
+                  : 'bg-[#59647A] text-[#EAE6DA] rounded-bl-none border border-white/5'
+              }`}>
+                {msg.text}
+              </div>
             </div>
           </div>
         ))}
         
+        {/* Indicateur de frappe */}
         {loading && (
-          <div className="flex justify-start">
-            <div className="bg-surface p-4 rounded-2xl rounded-bl-none text-gray-300 italic flex items-center gap-2">
-              <RefreshCw size={16} className="animate-spin"/> TAFSUT réfléchit...
-            </div>
+          <div className="flex justify-start w-full">
+             <div className="bg-[#59647A] p-3 rounded-2xl rounded-bl-none border border-white/5 flex items-center gap-2 ml-11">
+                <span className="w-2 h-2 bg-[#EAE6DA]/50 rounded-full animate-bounce"></span>
+                <span className="w-2 h-2 bg-[#EAE6DA]/50 rounded-full animate-bounce delay-75"></span>
+                <span className="w-2 h-2 bg-[#EAE6DA]/50 rounded-full animate-bounce delay-150"></span>
+             </div>
           </div>
         )}
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Barre de saisie */}
-      <form onSubmit={sendMessage} className="bg-surface p-4 rounded-b-2xl border-t border-gray-600 flex gap-4 shadow-lg">
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Écrivez votre message..."
-          className="flex-1 bg-background text-white p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary border border-transparent placeholder-gray-500"
-        />
-        <button 
-          type="submit" 
-          disabled={loading} 
-          className="bg-primary text-background p-3 rounded-xl hover:bg-white transition disabled:opacity-50 font-bold"
-        >
-          <Send size={24} />
-        </button>
+      {/* INPUT */}
+      <form onSubmit={sendMessage} className="bg-[#2F3A4A] p-4 border-t border-white/10">
+        <div className="relative flex items-center">
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Écrivez votre message..."
+            className="w-full bg-[#1E1E2E] text-[#EAE6DA] pl-6 pr-14 py-4 rounded-full border border-white/10 focus:outline-none focus:border-[#4ECDC4] focus:ring-1 focus:ring-[#4ECDC4] placeholder-[#EAE6DA]/30 shadow-inner transition-all"
+          />
+          <button 
+            type="submit" 
+            disabled={loading || !input.trim()} 
+            className="absolute right-2 p-2.5 bg-[#EAE6DA] text-[#2F3A4A] rounded-full hover:bg-[#4ECDC4] transition disabled:opacity-50 disabled:hover:bg-[#EAE6DA]"
+          >
+            <Send size={20} className={loading ? 'opacity-0' : 'opacity-100'} />
+            {loading && <RefreshCw size={20} className="absolute animate-spin"/>}
+          </button>
+        </div>
       </form>
     </div>
   );
