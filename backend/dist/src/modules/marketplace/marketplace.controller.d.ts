@@ -19,6 +19,7 @@ export declare class MarketplaceController {
         password: string;
         username: string | null;
         role: import(".prisma/client").$Enums.Role;
+        isVerified: boolean;
         addictionType: import(".prisma/client").$Enums.AddictionType;
         dailyCost: number | null;
         startDate: Date;
@@ -44,6 +45,7 @@ export declare class MarketplaceController {
         password: string;
         username: string | null;
         role: import(".prisma/client").$Enums.Role;
+        isVerified: boolean;
         addictionType: import(".prisma/client").$Enums.AddictionType;
         dailyCost: number | null;
         startDate: Date;
@@ -89,6 +91,7 @@ export declare class MarketplaceController {
         password: string;
         username: string | null;
         role: import(".prisma/client").$Enums.Role;
+        isVerified: boolean;
         addictionType: import(".prisma/client").$Enums.AddictionType;
         dailyCost: number | null;
         startDate: Date;

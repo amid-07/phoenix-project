@@ -26,6 +26,7 @@ export declare class BookingsService {
             password: string;
             username: string | null;
             role: import(".prisma/client").$Enums.Role;
+            isVerified: boolean;
             addictionType: import(".prisma/client").$Enums.AddictionType;
             dailyCost: number | null;
             startDate: Date;
@@ -50,6 +51,7 @@ export declare class BookingsService {
             password: string;
             username: string | null;
             role: import(".prisma/client").$Enums.Role;
+            isVerified: boolean;
             addictionType: import(".prisma/client").$Enums.AddictionType;
             dailyCost: number | null;
             startDate: Date;

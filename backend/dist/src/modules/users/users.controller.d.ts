@@ -3,26 +3,13 @@ export declare class UsersController {
     private readonly usersService;
     constructor(usersService: UsersService);
     createProfile(body: any): Promise<any>;
-    updateCost(id: string, body: any): Promise<{
-        id: string;
-        email: string;
-        password: string;
-        username: string | null;
-        role: import(".prisma/client").$Enums.Role;
-        addictionType: import(".prisma/client").$Enums.AddictionType;
-        dailyCost: number | null;
-        startDate: Date;
-        moneySaved: number;
-        currentStreak: number;
-        createdAt: Date;
-        updatedAt: Date;
-    }>;
     login(body: any): Promise<{
         id: string;
         email: string;
         password: string;
         username: string | null;
         role: import(".prisma/client").$Enums.Role;
+        isVerified: boolean;
         addictionType: import(".prisma/client").$Enums.AddictionType;
         dailyCost: number | null;
         startDate: Date;
@@ -32,7 +19,7 @@ export declare class UsersController {
         updatedAt: Date;
     } | {
         status: string;
-        message: string;
+        message: any;
     }>;
     getStats(id: string): Promise<{
         days: number;
@@ -68,12 +55,28 @@ export declare class UsersController {
         earnings?: undefined;
         hourlyRate?: undefined;
     }>;
+    updateCost(id: string, body: any): Promise<{
+        id: string;
+        email: string;
+        password: string;
+        username: string | null;
+        role: import(".prisma/client").$Enums.Role;
+        isVerified: boolean;
+        addictionType: import(".prisma/client").$Enums.AddictionType;
+        dailyCost: number | null;
+        startDate: Date;
+        moneySaved: number;
+        currentStreak: number;
+        createdAt: Date;
+        updatedAt: Date;
+    }>;
     relapse(id: string): Promise<{
         id: string;
         email: string;
         password: string;
         username: string | null;
         role: import(".prisma/client").$Enums.Role;
+        isVerified: boolean;
         addictionType: import(".prisma/client").$Enums.AddictionType;
         dailyCost: number | null;
         startDate: Date;

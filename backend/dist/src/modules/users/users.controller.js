@@ -22,18 +22,22 @@ let UsersController = class UsersController {
     async createProfile(body) {
         return this.usersService.createUser(body);
     }
-    async updateCost(id, body) {
-        return this.usersService.updateUserCost(id, parseFloat(body.dailyCost));
-    }
     async login(body) {
-        const user = await this.usersService.loginUser(body);
-        if (!user) {
-            return { status: 'error', message: 'Email ou mot de passe incorrect' };
+        try {
+            const user = await this.usersService.loginUser(body);
+            if (!user)
+                return { status: 'error', message: 'Identifiants incorrects' };
+            return user;
         }
-        return user;
+        catch (e) {
+            return { status: 'error', message: e.message };
+        }
     }
     async getStats(id) {
         return this.usersService.getUserStats(id);
+    }
+    async updateCost(id, body) {
+        return this.usersService.updateUserCost(id, parseFloat(body.dailyCost));
     }
     async relapse(id) {
         return this.usersService.reportRelapse(id);
@@ -48,14 +52,6 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], UsersController.prototype, "createProfile", null);
 __decorate([
-    (0, common_1.Post)(':id/update-cost'),
-    __param(0, (0, common_1.Param)('id')),
-    __param(1, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
-    __metadata("design:returntype", Promise)
-], UsersController.prototype, "updateCost", null);
-__decorate([
     (0, common_1.Post)('login'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -69,6 +65,14 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], UsersController.prototype, "getStats", null);
+__decorate([
+    (0, common_1.Post)(':id/update-cost'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], UsersController.prototype, "updateCost", null);
 __decorate([
     (0, common_1.Post)(':id/relapse'),
     __param(0, (0, common_1.Param)('id')),

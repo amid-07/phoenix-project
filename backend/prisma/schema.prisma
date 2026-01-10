@@ -1,5 +1,3 @@
-// Fichier: backend/prisma/schema.prisma
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -19,32 +17,23 @@ model User {
   password       String
   username       String?
   
-  // Rôle : USER (Patient) ou COACH (Expert)
   role           Role      @default(USER)
+  isVerified     Boolean   @default(true) // True pour User, False pour Coach (par défaut)
 
-  // -- Données d'Addiction --
   addictionType  AddictionType @default(SMOKING)
-  dailyCost      Float?        // Coût par jour (en €)
-  startDate      DateTime  @default(now()) // Date de début de sobriété
+  dailyCost      Float?
+  startDate      DateTime  @default(now())
   moneySaved     Float     @default(0)
-  currentStreak  Int       @default(0)     // Jours consécutifs
+  currentStreak  Int       @default(0)
 
-  // -- Relations App (Interne) --
+  // Relations
   journals       Journal[]
   dailyPlans     DailyPlan[]
   badges         UserBadge[]
-
-  // -- Relations Marketplace (Externe) --
-  // 1. Si c'est un coach, il a un profil pro
+  
   professionalProfile ProfessionalProfile?
-  
-  // 2. Les RDV pris en tant que patient
   bookingsMade        Booking[]  @relation("PatientBookings")
-  
-  // 3. Les RDV reçus en tant que coach
   bookingsReceived    Booking[]  @relation("CoachBookings")
-
-  // 4. Les avis écrits par cet utilisateur
   writtenReviews      Review[]
 
   createdAt      DateTime  @default(now())
@@ -52,72 +41,57 @@ model User {
 }
 
 // --------------------------------------
-// 2. MARKETPLACE (EXPERTS)
+// 2. MARKETPLACE
 // --------------------------------------
 
 model ProfessionalProfile {
   id          String   @id @default(uuid())
-  title       String   // Ex: "Psychologue Clinicien"
-  bio         String   // Description longue
-  specialties String[] // Ex: ["Jeu", "Alcool", "Tabac"]
-  hourlyRate  Float    // Prix de la séance
-  rating      Float    @default(5.0) // Note moyenne
-  
-  // NOUVEAU : Adresse du cabinet (Optionnel)
+  title       String
+  bio         String
+  specialties String[]
+  hourlyRate  Float
+  rating      Float    @default(5.0)
   address     String?
 
-  // Lien avec l'utilisateur (le coach)
   userId      String   @unique
   user        User     @relation(fields: [userId], references: [id])
 
-  // Ses créneaux et ses avis reçus
   availabilities Availability[]
   reviews        Review[]
 }
 
-// Gestion des Créneaux Horaires
 model Availability {
   id        String      @id @default(uuid())
-  date      DateTime    // Date et Heure précise du créneau
+  date      DateTime
   isBooked  Boolean     @default(false)
-  
-  // NOUVEAU : Type de créneau proposé (Visio ou Cabinet)
   type      SessionType @default(REMOTE)
-
+  
   profileId String
   profile   ProfessionalProfile @relation(fields: [profileId], references: [id])
 }
 
-// Gestion des Avis et Notes
 model Review {
   id        String   @id @default(uuid())
-  rating    Int      // Note de 1 à 5
-  comment   String   // Le texte de l'avis
+  rating    Int
+  comment   String
   createdAt DateTime @default(now())
 
-  // Quel coach est noté ?
   profileId String
   profile   ProfessionalProfile @relation(fields: [profileId], references: [id])
 
-  // Qui a écrit l'avis ?
   authorId  String
   author    User     @relation(fields: [authorId], references: [id])
 }
 
-// Gestion des Réservations (RDV validés)
 model Booking {
   id        String      @id @default(uuid())
-  date      DateTime    // Date et heure du RDV
-  status    String      @default("PENDING") // PENDING, CONFIRMED, CANCELLED
-  
-  // NOUVEAU : Type final de la séance
+  date      DateTime
+  status    String      @default("PENDING")
   type      SessionType @default(REMOTE)
 
-  // Qui réserve ? (Le Patient)
   patientId String
   patient   User     @relation("PatientBookings", fields: [patientId], references: [id])
   
-  // Qui est réservé ? (Le Coach)
   coachId   String
   coach     User     @relation("CoachBookings", fields: [coachId], references: [id])
 
@@ -125,13 +99,13 @@ model Booking {
 }
 
 // --------------------------------------
-// 3. FONCTIONNALITÉS APP (IA & TRACKING)
+// 3. APP
 // --------------------------------------
 
 model Journal {
   id        String   @id @default(uuid())
   content   String
-  mood      Int      // Note de 1 à 10
+  mood      Int
   createdAt DateTime @default(now())
   
   userId    String
@@ -141,16 +115,12 @@ model Journal {
 model DailyPlan {
   id        String   @id @default(uuid())
   date      DateTime @default(now())
-  tasks     Json     // Liste des tâches générées par l'IA
+  tasks     Json
   isCompleted Boolean @default(false)
   
   userId    String
   user      User     @relation(fields: [userId], references: [id])
 }
-
-// --------------------------------------
-// 4. GAMIFICATION & MARKETING
-// --------------------------------------
 
 model Badge {
   id          String      @id @default(uuid())
@@ -158,32 +128,25 @@ model Badge {
   description String
   iconName    String
   requiredDays Int
-  
   users       UserBadge[]
 }
 
 model UserBadge {
   id        String   @id @default(uuid())
   earnedAt  DateTime @default(now())
-  
   userId    String
   user      User     @relation(fields: [userId], references: [id])
-  
   badgeId   String
   badge     Badge    @relation(fields: [badgeId], references: [id])
 }
 
-// Pour la Landing Page (Emails des intéressés)
 model Waitlist {
   id        String   @id @default(uuid())
   email     String   @unique
   createdAt DateTime @default(now())
 }
 
-// --------------------------------------
-// 5. ENUMS
-// --------------------------------------
-
+// ENUMS
 enum Role {
   USER
   COACH
@@ -199,8 +162,7 @@ enum AddictionType {
   OTHER
 }
 
-// NOUVEAU : Type de séance
 enum SessionType {
-  REMOTE    // Visio (Jitsi)
-  IN_PERSON // Présentiel (Cabinet)
+  REMOTE
+  IN_PERSON
 }

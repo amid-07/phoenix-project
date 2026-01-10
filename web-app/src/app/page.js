@@ -124,11 +124,11 @@ export default function LoginPage() {
         </form>
 
         <p className="mt-8 text-center text-sm text-[#EAE6DA]/60">
-          Pas encore membre ?{' '}
-          <span className="text-white font-bold cursor-pointer hover:underline" onClick={() => alert("Utilisez l'app mobile pour vous inscrire.")}>
-            S'inscrire
-          </span>
-        </p>
+  Pas encore membre ?{' '}
+  <span className="text-white font-bold cursor-pointer hover:underline" onClick={() => router.push('/signup')}>
+    S'inscrire
+  </span>
+</p>
 
       </div>
     </div>

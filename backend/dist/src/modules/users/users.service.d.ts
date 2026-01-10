@@ -1,11 +1,12 @@
 export declare class UsersService {
     createUser(data: any): Promise<any>;
-    updateUserCost(userId: string, cost: number): Promise<{
+    loginUser(data: any): Promise<{
         id: string;
         email: string;
         password: string;
         username: string | null;
         role: import(".prisma/client").$Enums.Role;
+        isVerified: boolean;
         addictionType: import(".prisma/client").$Enums.AddictionType;
         dailyCost: number | null;
         startDate: Date;
@@ -14,12 +15,13 @@ export declare class UsersService {
         createdAt: Date;
         updatedAt: Date;
     }>;
-    loginUser(data: any): Promise<{
+    updateUserCost(userId: string, cost: number): Promise<{
         id: string;
         email: string;
         password: string;
         username: string | null;
         role: import(".prisma/client").$Enums.Role;
+        isVerified: boolean;
         addictionType: import(".prisma/client").$Enums.AddictionType;
         dailyCost: number | null;
         startDate: Date;
@@ -34,6 +36,7 @@ export declare class UsersService {
         password: string;
         username: string | null;
         role: import(".prisma/client").$Enums.Role;
+        isVerified: boolean;
         addictionType: import(".prisma/client").$Enums.AddictionType;
         dailyCost: number | null;
         startDate: Date;
