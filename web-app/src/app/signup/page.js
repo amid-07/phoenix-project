@@ -43,12 +43,12 @@ export default function SignupPage() {
 
       if (data && data.id) {
         if (role === 'COACH') {
-          setSuccessMsg("Votre compte Expert a été créé ! Il est en attente de validation par l'équipe TAFUT.");
+          setSuccessMsg("Votre compte Expert a été créé ! Il est en attente de validation par l'équipe TAFSUT.");
         } else {
           // Patient : Connexion directe
           localStorage.setItem('userId', data.id);
           localStorage.setItem('username', data.username);
-          router.push('/dashboard');
+          router.push('/assessment');
         }
       } else {
         setError("Erreur : Cet email est peut-être déjà utilisé.");
@@ -86,7 +86,7 @@ export default function SignupPage() {
                <Image src="/logo.png" width={40} height={40} alt="Logo" className="object-contain" />
             </div>
             <h1 className="text-3xl font-bold text-[#EAE6DA] mb-2">Bienvenue</h1>
-            <p className="text-[#B0BCC9] text-sm">Créez votre espace TAFUT.</p>
+            <p className="text-[#B0BCC9] text-sm">Créez votre espace TAFSUT.</p>
           </div>
 
           {successMsg ? (
