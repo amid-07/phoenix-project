@@ -33,7 +33,7 @@ export default function SignupPage() {
           // Patient : Connexion directe
           localStorage.setItem('userId', data.id);
           localStorage.setItem('username', data.username);
-          router.push('/dashboard');
+          router.push('/assessment');
         }
       } else {
         setError("Erreur lors de la création.");
@@ -45,7 +45,7 @@ export default function SignupPage() {
     <div className="min-h-screen flex items-center justify-center bg-[#2F3A4A] p-4 text-[#EAE6DA]">
       <div className="w-full max-w-md bg-[#59647A] p-8 rounded-2xl shadow-2xl border border-white/10">
         
-        <h1 className="text-3xl font-bold text-center mb-6">Inscription TAFUT</h1>
+        <h1 className="text-3xl font-bold text-center mb-6">Inscription TAFSUT</h1>
 
         {successMsg ? (
           <div className="text-center p-6 bg-[#4ECDC4]/20 rounded-xl border border-[#4ECDC4]">
