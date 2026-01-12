@@ -40,7 +40,13 @@ export default function LoginPage() {
       if (data && data.id) {
         localStorage.setItem('userId', data.id);
         localStorage.setItem('username', data.username);
-        router.push('/dashboard');
+        
+        // VÉRIFICATION
+        if (data.dailyCost === null) {
+          router.push('/assessment'); // Vers le quiz
+        } else {
+          router.push('/dashboard'); // Vers l'accueil
+        }
       } else {
         setError(data.message || "Email ou mot de passe incorrect.");
       }

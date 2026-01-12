@@ -40,7 +40,7 @@ let UsersService = class UsersService {
                 role: role,
                 isVerified: isVerified,
                 addictionType: 'SMOKING',
-                dailyCost: parseFloat(data.dailyCost) || 0,
+                dailyCost: data.dailyCost ? parseFloat(data.dailyCost) : null,
                 startDate: new Date(),
                 moneySaved: 0,
                 currentStreak: 0,
