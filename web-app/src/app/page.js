@@ -3,22 +3,24 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { 
-  ArrowRight, Shield, Zap, Sparkles, Lock, Loader2, BrainCircuit, Heart, Users 
-} from 'lucide-react';
+import { ArrowRight, Sparkles, Shield, Zap, Lock, Mail, Loader2, Menu, X, CheckCircle } from 'lucide-react';
 
 export default function LandingPage() {
   const router = useRouter();
   
-  // États Connexion
+  // États
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
-  // Effet d'écriture machine pour le titre
+  // Effet machine à écrire
   const [text, setText] = useState('');
   const fullText = "Retrouvez la Lumière.";
+
+  // ⚠️ API URL
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
   useEffect(() => {
     let index = 0;
@@ -29,9 +31,6 @@ export default function LandingPage() {
     }, 100);
     return () => clearInterval(interval);
   }, []);
-
-  // ⚠️ API URL
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -62,132 +61,185 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#2F3A4A] text-[#EAE6DA] font-sans overflow-x-hidden selection:bg-[#4ECDC4] selection:text-[#2F3A4A]">
+    <div className="min-h-screen bg-[#0F172A] text-[#EAE6DA] font-sans overflow-x-hidden selection:bg-[#4ECDC4] selection:text-[#0F172A]">
       
-      {/* --- BACKGROUND DYNAMIQUE (Lueurs) --- */}
-      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-[#6C63FF]/20 rounded-full blur-[120px] animate-pulse-slow"></div>
-        <div className="absolute bottom-[-10%] right-[-10%] w-[700px] h-[700px] bg-[#4ECDC4]/10 rounded-full blur-[120px] animate-float"></div>
+      {/* --- BACKGROUND SUBTIL --- */}
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <div className="absolute top-[-10%] left-[-20%] w-[80vw] h-[80vw] bg-[#6C63FF]/10 rounded-full blur-[100px] animate-pulse-slow"></div>
+        <div className="absolute bottom-[-10%] right-[-20%] w-[80vw] h-[80vw] bg-[#4ECDC4]/5 rounded-full blur-[100px]"></div>
       </div>
 
-      {/* --- NAVBAR --- */}
-      <nav className="relative z-50 flex justify-between items-center max-w-7xl mx-auto px-6 py-8">
-        <div className="flex items-center gap-3 group cursor-pointer">
-          <div className="w-10 h-10 bg-[#EAE6DA] rounded-full flex items-center justify-center p-1 shadow-lg group-hover:rotate-12 transition-transform duration-500">
-             <Image src="/logo.png" width={32} height={32} alt="Logo" className="object-contain" />
+      {/* --- NAVBAR STICKY (Fixe en haut) --- */}
+      <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-[#0F172A]/70 border-b border-white/5 transition-all duration-300">
+        <div className="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
+          
+          {/* Logo & Marque */}
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => window.scrollTo(0,0)}>
+            <div className="relative w-10 h-10">
+               <Image src="/logo.png" fill alt="Logo TAFSUT" className="object-contain drop-shadow-lg" />
+            </div>
+            <span className="text-xl font-bold tracking-[0.2em] text-white">TAFSUT</span>
           </div>
-          <span className="text-2xl font-bold tracking-[0.2em] text-[#EAE6DA]">TAFSUT</span>
+
+          {/* Menu Desktop */}
+          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-[#EAE6DA]/80">
+            <a href="#features" className="hover:text-[#4ECDC4] transition">Fonctionnalités</a>
+            <a href="#mission" className="hover:text-[#4ECDC4] transition">Mission</a>
+            <button onClick={() => document.getElementById('login').scrollIntoView({behavior:'smooth'})} className="bg-[#EAE6DA] text-[#0F172A] px-5 py-2.5 rounded-full font-bold hover:bg-white transition shadow-lg shadow-white/10">
+              Connexion
+            </button>
+          </div>
+
+          {/* Menu Mobile Button */}
+          <button className="md:hidden text-[#EAE6DA]" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+            {mobileMenuOpen ? <X /> : <Menu />}
+          </button>
         </div>
-        <div className="hidden md:flex gap-8 text-[#EAE6DA]/70 font-medium">
-          <a href="#features" className="hover:text-[#4ECDC4] transition">Fonctionnalités</a>
-          <a href="#mission" className="hover:text-[#4ECDC4] transition">Notre Mission</a>
-        </div>
+
+        {/* Menu Mobile Overlay */}
+        {mobileMenuOpen && (
+          <div className="md:hidden absolute top-20 left-0 w-full bg-[#1E293B] border-b border-white/10 p-6 flex flex-col gap-4 shadow-2xl animate-in slide-in-from-top-5">
+            <a href="#features" onClick={() => setMobileMenuOpen(false)} className="text-lg font-medium">Fonctionnalités</a>
+            <a href="#mission" onClick={() => setMobileMenuOpen(false)} className="text-lg font-medium">Mission</a>
+          </div>
+        )}
       </nav>
 
       {/* --- HERO SECTION --- */}
-      <main className="relative z-10 max-w-7xl mx-auto px-6 pt-12 pb-32 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+      <main className="relative z-10 max-w-7xl mx-auto px-6 pt-32 pb-20 lg:pt-48 lg:pb-32 grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
         
         {/* Colonne Gauche : Texte */}
-        <div className="space-y-8 animate-fade-in-up">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#59647A]/30 border border-[#EAE6DA]/10 backdrop-blur-sm text-sm font-bold text-[#4ECDC4] shadow-lg">
-            <Sparkles size={16} /> Nouvelle approche thérapeutique
+        <div className="text-center lg:text-left space-y-8 animate-fade-in-up">
+          
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#59647A]/30 border border-[#4ECDC4]/30 backdrop-blur-md text-xs font-bold text-[#4ECDC4] shadow-lg mx-auto lg:mx-0">
+            <Sparkles size={14} /> NOUVELLE APPROCHE IA
           </div>
           
-          <h1 className="text-5xl md:text-7xl font-bold leading-tight h-40 md:h-auto">
+          <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold leading-tight tracking-tight text-white">
             {text}<span className="animate-blink text-[#4ECDC4]">|</span><br/>
-            Maîtrisez votre <span className="text-[#FFD93D]">Vie</span>.
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#EAE6DA] to-[#94A3B8]">Maîtrisez votre vie.</span>
           </h1>
           
-          <p className="text-xl text-[#B0BCC9] leading-relaxed max-w-lg border-l-4 border-[#59647A] pl-6">
-            TAFSUT combine l'intelligence artificielle et l'expertise humaine pour vous libérer de vos addictions, jour après jour.
+          <p className="text-lg text-[#94A3B8] leading-relaxed max-w-xl mx-auto lg:mx-0">
+            Une plateforme médicale sécurisée combinant <strong className="text-[#EAE6DA]">Intelligence Artificielle</strong> et <strong className="text-[#EAE6DA]">Experts Humains</strong> pour un rétablissement durable.
           </p>
 
-          <div className="flex gap-4 pt-4">
-             <button onClick={() => document.getElementById('login-card').scrollIntoView({behavior:'smooth'})} className="bg-[#EAE6DA] text-[#2F3A4A] px-8 py-4 rounded-xl font-bold hover:bg-white transition shadow-lg shadow-white/10 flex items-center gap-2 transform hover:-translate-y-1">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-4">
+             <button onClick={() => document.getElementById('login').scrollIntoView({behavior:'smooth'})} className="bg-[#6C63FF] text-white px-8 py-4 rounded-xl font-bold hover:bg-[#5a52d5] transition shadow-xl shadow-[#6C63FF]/20 flex items-center justify-center gap-2 transform hover:-translate-y-1">
                Commencer <ArrowRight size={20}/>
              </button>
-             <button className="px-8 py-4 rounded-xl font-bold border border-[#EAE6DA]/20 hover:bg-[#59647A]/30 transition text-[#EAE6DA]">
-               En savoir plus
-             </button>
+             <a href="#features" className="px-8 py-4 rounded-xl font-bold border border-[#EAE6DA]/10 hover:bg-[#59647A]/30 transition text-[#EAE6DA] flex items-center justify-center">
+               Découvrir
+             </a>
+          </div>
+
+          <div className="pt-8 flex items-center justify-center lg:justify-start gap-4 text-sm text-[#94A3B8]">
+             <div className="flex -space-x-2">
+               {[1,2,3].map(i => <div key={i} className="w-8 h-8 rounded-full border-2 border-[#0F172A] bg-gray-600"/>)}
+             </div>
+             <p>Rejoint par <span className="text-white font-bold">2,000+ membres</span></p>
           </div>
         </div>
 
-        {/* Colonne Droite : Formulaire de Connexion (Card) */}
-        <div id="login-card" className="relative group perspective-1000">
-          {/* Effet de bordure brillante au survol */}
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-[#6C63FF] to-[#4ECDC4] rounded-2xl blur opacity-30 group-hover:opacity-60 transition duration-1000"></div>
+        {/* Colonne Droite : Formulaire de Connexion (Design Glass) */}
+        <div id="login" className="relative w-full max-w-md mx-auto lg:mx-0">
+          {/* Effet de lueur arrière */}
+          <div className="absolute -inset-1 bg-gradient-to-r from-[#6C63FF] to-[#4ECDC4] rounded-2xl blur opacity-20 animate-pulse"></div>
           
-          <div className="relative bg-[#59647A] p-8 rounded-2xl shadow-2xl border border-white/5 transform transition-transform duration-500 hover:rotate-1">
-            <h2 className="text-2xl font-bold mb-2 text-[#EAE6DA]">Espace Membre 👋</h2>
-            <p className="text-[#B0BCC9] text-sm mb-8">Connectez-vous pour accéder à votre tableau de bord.</p>
+          <div className="relative bg-[#1E293B]/80 backdrop-blur-xl border border-white/10 p-8 rounded-2xl shadow-2xl">
+            <div className="flex items-center justify-between mb-8">
+               <div>
+                  <h2 className="text-2xl font-bold text-white">Espace Membre</h2>
+                  <p className="text-[#94A3B8] text-xs">Accédez à votre tableau de bord</p>
+               </div>
+               <div className="w-10 h-10 bg-[#2F3A4A] rounded-full flex items-center justify-center border border-white/5">
+                 <Lock size={18} className="text-[#4ECDC4]"/>
+               </div>
+            </div>
 
             <form onSubmit={handleLogin} className="space-y-5">
-              <div className="group/input">
-                <label className="text-xs font-bold text-[#EAE6DA]/50 uppercase tracking-wide group-focus-within/input:text-[#4ECDC4] transition">Email</label>
-                <input 
-                  type="email" 
-                  className="w-full bg-[#2F3A4A] border border-white/10 rounded-xl p-4 text-white focus:border-[#4ECDC4] focus:ring-1 focus:ring-[#4ECDC4] transition outline-none mt-2 placeholder-[#B0BCC9]/20"
-                  placeholder="votre@email.com"
-                  value={email} onChange={e => setEmail(e.target.value)} required
-                />
+              <div className="group">
+                <label className="text-xs font-bold text-[#94A3B8] uppercase tracking-wider mb-1.5 block group-focus-within:text-[#4ECDC4] transition">Email</label>
+                <div className="relative">
+                  <Mail size={18} className="absolute left-3 top-3.5 text-[#94A3B8] group-focus-within:text-white transition"/>
+                  <input 
+                    type="email" 
+                    className="w-full bg-[#0F172A] border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white focus:border-[#4ECDC4] focus:ring-1 focus:ring-[#4ECDC4] transition outline-none placeholder-[#94A3B8]/30"
+                    placeholder="votre@email.com"
+                    value={email} onChange={e => setEmail(e.target.value)} required
+                  />
+                </div>
               </div>
               
-              <div className="group/input">
-                <label className="text-xs font-bold text-[#EAE6DA]/50 uppercase tracking-wide group-focus-within/input:text-[#4ECDC4] transition">Mot de passe</label>
-                <input 
-                  type="password" 
-                  className="w-full bg-[#2F3A4A] border border-white/10 rounded-xl p-4 text-white focus:border-[#4ECDC4] focus:ring-1 focus:ring-[#4ECDC4] transition outline-none mt-2 placeholder-[#B0BCC9]/20"
-                  placeholder="••••••••"
-                  value={password} onChange={e => setPassword(e.target.value)} required
-                />
+              <div className="group">
+                <label className="text-xs font-bold text-[#94A3B8] uppercase tracking-wider mb-1.5 block group-focus-within:text-[#4ECDC4] transition">Mot de passe</label>
+                <div className="relative">
+                  <Lock size={18} className="absolute left-3 top-3.5 text-[#94A3B8] group-focus-within:text-white transition"/>
+                  <input 
+                    type="password" 
+                    className="w-full bg-[#0F172A] border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white focus:border-[#4ECDC4] focus:ring-1 focus:ring-[#4ECDC4] transition outline-none placeholder-[#94A3B8]/30"
+                    placeholder="••••••••"
+                    value={password} onChange={e => setPassword(e.target.value)} required
+                  />
+                </div>
               </div>
 
-              {error && <div className="p-3 rounded-xl bg-[#FF6B6B]/10 text-[#FF6B6B] text-sm border border-[#FF6B6B]/20 text-center font-medium animate-shake">{error}</div>}
+              {error && (
+                <div className="p-3 rounded-lg bg-[#FF6B6B]/10 border border-[#FF6B6B]/20 flex items-center gap-2 text-[#FF6B6B] text-sm font-medium animate-shake">
+                  <AlertTriangle size={16} /> {error}
+                </div>
+              )}
 
               <button 
                 disabled={loading}
-                className="w-full bg-[#6C63FF] hover:bg-[#5a52d5] text-white font-bold py-4 rounded-xl transition shadow-lg shadow-[#6C63FF]/25 flex justify-center items-center gap-2 transform active:scale-95"
+                className="w-full bg-[#EAE6DA] hover:bg-white text-[#0F172A] font-bold py-3.5 rounded-xl transition shadow-lg shadow-white/10 flex justify-center items-center gap-2 transform active:scale-95"
               >
-                {loading ? <Loader2 className="animate-spin" size={20}/> : <>Se connecter <ArrowRight size={18}/></>}
+                {loading ? <Loader2 className="animate-spin" size={20}/> : "Se connecter"}
               </button>
             </form>
             
-            <p className="text-center text-xs text-[#B0BCC9] mt-6">
-              Pas encore de compte ? <span className="text-[#4ECDC4] font-bold cursor-pointer hover:underline" onClick={() => alert("Utilisez l'application mobile pour créer votre compte.")}>Télécharger l'app</span>
-            </p>
+            <div className="mt-6 pt-6 border-t border-white/5 text-center">
+              <p className="text-xs text-[#94A3B8]">
+                Pas encore de compte ? <br/>
+                <button onClick={() => alert("Téléchargez l'app mobile pour créer votre compte sécurisé.")} className="text-[#4ECDC4] font-bold hover:underline mt-1">Télécharger l'Application</button>
+              </p>
+            </div>
           </div>
         </div>
 
       </main>
 
-      {/* --- FEATURES GRID (Bento Style) --- */}
-      <section id="features" className="max-w-7xl mx-auto px-6 py-20">
-        <h2 className="text-3xl font-bold text-center mb-16 text-[#EAE6DA]">Un écosystème complet pour <span className="text-[#4ECDC4]">guérir.</span></h2>
+      {/* --- FEATURES GRID (Bento) --- */}
+      <section id="features" className="max-w-7xl mx-auto px-6 py-24 border-t border-white/5">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Pourquoi choisir TAFSUT ?</h2>
+          <p className="text-[#94A3B8] max-w-2xl mx-auto">Une suite d'outils complète conçue par des experts en addictologie et des ingénieurs en IA.</p>
+        </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <FeatureCard 
             icon={<BrainCircuit size={32}/>} 
-            title="Coach IA Personnel" 
-            desc="Une intelligence artificielle disponible 24/7 pour analyser vos émotions et prévenir les rechutes."
+            title="Coach IA 24/7" 
+            desc="Analyse émotionnelle en temps réel et conseils personnalisés basés sur les TCC."
             color="#6C63FF"
             large
           />
           <FeatureCard 
             icon={<Shield size={32}/>} 
-            title="100% Anonyme" 
-            desc="Vos données sont chiffrées de bout en bout."
+            title="Anonymat Total" 
+            desc="Aucune donnée partagée. Votre vie privée est notre priorité absolue."
             color="#4ECDC4"
           />
           <FeatureCard 
             icon={<Users size={32}/>} 
             title="Experts Humains" 
-            desc="Réservez une séance avec des psychologues certifiés."
+            desc="Prenez rendez-vous en un clic avec des spécialistes certifiés."
             color="#FFD93D"
           />
           <FeatureCard 
             icon={<Heart size={32}/>} 
             title="Suivi Quotidien" 
-            desc="Journal de bord intelligent, compteur de jours et système de récompenses pour célébrer chaque victoire."
+            desc="Journal de bord intelligent et compteur de sobriété pour visualiser vos progrès."
             color="#FF6B6B"
             large
           />
@@ -195,31 +247,31 @@ export default function LandingPage() {
       </section>
 
       {/* FOOTER */}
-      <footer className="border-t border-white/5 py-12 bg-[#252E3E]">
-        <div className="max-w-7xl mx-auto px-6 text-center">
-          <div className="flex justify-center items-center gap-2 mb-4">
-            <div className="w-6 h-6 bg-[#EAE6DA] rounded flex items-center justify-center"><Image src="/logo.png" width={16} height={16} alt="Logo"/></div>
-            <span className="font-bold tracking-widest text-[#EAE6DA]">TAFUT</span>
+      <footer className="py-12 bg-[#0B1120] border-t border-white/5">
+        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="flex items-center gap-2">
+            <Image src="/logo.png" width={24} height={24} alt="Logo"/>
+            <span className="font-bold tracking-widest text-[#EAE6DA]">TAFSUT</span>
           </div>
-          <p className="text-[#B0BCC9] text-sm">© 2025 TAFSUT . Tous droits réservés.</p>
+          <div className="text-[#94A3B8] text-sm">
+            © 2025 TAFSUT Inc. <span className="mx-2">•</span> Confidentialité <span className="mx-2">•</span> Contact
+          </div>
         </div>
       </footer>
     </div>
   );
 }
 
-// Composant Carte Fonctionnalité (Style TAFSUT)
+// Composant Carte
 function FeatureCard({ icon, title, desc, color, large }) {
   return (
-    <div className={`${large ? 'md:col-span-2' : ''} bg-[#59647A]/30 backdrop-blur-md border border-white/5 rounded-3xl p-8 hover:bg-[#59647A]/50 transition duration-300 group hover:-translate-y-2 cursor-default relative overflow-hidden`}>
-       {/* Effet de lueur colorée au survol */}
-       <div className="absolute -right-10 -bottom-10 w-32 h-32 rounded-full blur-[60px] transition duration-500 opacity-0 group-hover:opacity-40 pointer-events-none" style={{backgroundColor: color}}></div>
-
-       <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 transition transform group-hover:scale-110 shadow-lg" style={{backgroundColor: `${color}20`, color: color}}>
+    <div className={`${large ? 'md:col-span-2' : ''} bg-[#1E293B]/50 backdrop-blur-sm border border-white/5 rounded-3xl p-8 hover:bg-[#1E293B] transition duration-300 group hover:-translate-y-2 cursor-default relative overflow-hidden`}>
+       <div className="absolute -right-10 -bottom-10 w-32 h-32 rounded-full blur-[60px] opacity-0 group-hover:opacity-20 transition duration-500 pointer-events-none" style={{backgroundColor: color}}></div>
+       <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 transition transform group-hover:scale-110 shadow-lg border border-white/5" style={{backgroundColor: `${color}15`, color: color}}>
          {icon}
        </div>
-       <h3 className="text-xl font-bold mb-3 text-[#EAE6DA]">{title}</h3>
-       <p className="text-[#B0BCC9] leading-relaxed text-sm">{desc}</p>
+       <h3 className="text-xl font-bold mb-3 text-white">{title}</h3>
+       <p className="text-[#94A3B8] leading-relaxed text-sm">{desc}</p>
     </div>
   );
 }
