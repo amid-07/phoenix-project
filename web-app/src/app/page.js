@@ -189,13 +189,16 @@ export default function LoginPage() {
             </form>
             
             <div className="mt-8 pt-6 border-t border-white/5 text-center">
-              <p className="text-xs text-[#B0BCC9]">
-                Pas encore de compte ? <br/>
-                <button onClick={() => alert("Utilisez l'application mobile TAFSUT pour créer votre compte.")} className="text-[#4ECDC4] font-bold hover:underline mt-2 inline-flex items-center gap-1">
-                  Télécharger l'Application <ArrowRight size={12}/>
-                </button>
-              </p>
-            </div>
+          <p className="text-xs text-[#B0BCC9]">
+            Pas encore de compte ? <br/>
+            <button 
+              onClick={() => router.push('/signup')} 
+              className="text-[#4ECDC4] font-bold hover:underline mt-2 inline-flex items-center gap-1 transition transform hover:scale-105"
+            >
+              Créer un compte gratuitement <ArrowRight size={12}/>
+            </button>
+          </p>
+        </div>
           </div>
         </div>
 
