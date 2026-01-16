@@ -4,14 +4,20 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   
-  // CONFIGURATION CORS ULTRA-PERMISSIVE (Pour que le Web fonctionne)
+  // CORS : Accepter tout le monde
   app.enableCors({
-    origin: true, // Accepte toutes les origines (localhost, ngrok, vercel...)
+    origin: true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });
-  
-  await app.listen(3000);
-  console.log(`🚀 Le serveur tourne sur : http://localhost:3000`);
+
+  await app.init();
+  return app;
 }
-bootstrap();
+
+// Cette partie est spécifique pour Vercel (Serverless)
+export default async (req, res) => {
+  const app = await bootstrap();
+  const instance = app.getHttpAdapter().getInstance();
+  return instance(req, res);
+};

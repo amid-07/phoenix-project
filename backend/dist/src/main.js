@@ -9,8 +9,12 @@ async function bootstrap() {
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
         credentials: true,
     });
-    await app.listen(3000);
-    console.log(`🚀 Le serveur tourne sur : http://localhost:3000`);
+    await app.init();
+    return app;
 }
-bootstrap();
+exports.default = async (req, res) => {
+    const app = await bootstrap();
+    const instance = app.getHttpAdapter().getInstance();
+    return instance(req, res);
+};
 //# sourceMappingURL=main.js.map
