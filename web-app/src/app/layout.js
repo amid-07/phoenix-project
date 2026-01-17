@@ -19,6 +19,14 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
+       <head>
+        {/* 2. Ajoutez le script Umami ici */}
+        <Script
+          src="https://cloud.umami.is/script.js"
+          data-website-id="8e4cd25e-2791-4e6d-abcc-58ee21ebfa1e"
+          strategy="afterInteractive"
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
