@@ -120,12 +120,7 @@ export default function LoginPage() {
             Une plateforme sécurisée qui combine la puissance de l'IA et l'empathie humaine pour vous accompagner vers la liberté, jour après jour.
           </p>
 
-          <div className="pt-8 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-6 text-sm text-[#B0BCC9]">
-             <div className="flex -space-x-3">
-               {[1,2,3,4].map(i => <div key={i} className="w-10 h-10 rounded-full border-2 border-[#2F3A4A] bg-[#59647A]"/>)}
-             </div>
-            
-          </div>
+          
         </div>
 
         {/* --- FORMULAIRE DE CONNEXION --- */}
