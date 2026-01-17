@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Save, BookOpen, Calendar, Zap, Frown, Meh, Smile, AlertCircle, CheckCircle2, History } from 'lucide-react';
+import { Save, BookOpen, Calendar, Zap, Frown, Meh, Smile, AlertCircle, CheckCircle, History } from 'lucide-react';
 
 export default function JournalPage() {
   const [content, setContent] = useState('');
@@ -8,45 +8,58 @@ export default function JournalPage() {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // ⚠️ API URL
+  // ⚠️ URL API (DYNAMIQUE)
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
-  // --- Chargement Historique ---
+  // --- CHARGEMENT HISTORIQUE ---
   const fetchHistory = async () => {
     try {
       const userId = localStorage.getItem('userId');
+      if (!userId) return;
+
       const res = await fetch(`${API_URL}/journal/${userId}`, {
         headers: { 'ngrok-skip-browser-warning': 'true' }
       });
       const data = await res.json();
       setHistory(data);
-    } catch (e) { console.error(e); } finally { setLoading(false); }
+    } catch (e) { 
+      console.error(e); 
+    } finally { 
+      setLoading(false); 
+    }
   };
 
   useEffect(() => { fetchHistory(); }, []);
 
-  // --- Sauvegarde ---
+  // --- SAUVEGARDE ---
   const saveJournal = async () => {
     const userId = localStorage.getItem('userId');
     if (!content.trim()) return;
     
-    await fetch(`${API_URL}/journal`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
-      body: JSON.stringify({ userId, content, mood })
-    });
-    alert("Votre réflexion a été enregistrée.");
-    setContent('');
-    fetchHistory();
+    try {
+      await fetch(`${API_URL}/journal`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json', 
+          'ngrok-skip-browser-warning': 'true' 
+        },
+        body: JSON.stringify({ userId, content, mood })
+      });
+      alert("Votre réflexion a été enregistrée.");
+      setContent('');
+      fetchHistory(); // Rafraîchir la liste
+    } catch (e) {
+      alert("Erreur lors de la sauvegarde.");
+    }
   };
 
-  // --- NOUVELLE ÉCHELLE D'HUMEUR (PRO) ---
+  // --- ÉCHELLE D'HUMEUR (PRO) ---
   const moodScale = [
     { level: 1, label: "Difficile", icon: AlertCircle, color: "#FF6B6B" }, // Rouge
     { level: 2, label: "Basse", icon: Frown, color: "#FFA502" },           // Orange
     { level: 3, label: "Stable", icon: Meh, color: "#B0BCC9" },            // Gris
     { level: 4, label: "Positive", icon: Smile, color: "#4ECDC4" },        // Vert
-    { level: 5, label: "Forte", icon: Zap, color: "#FFD93D" },             // Or (Énergie)
+    { level: 5, label: "Forte", icon: Zap, color: "#FFD93D" },             // Or
   ];
 
   return (
@@ -65,7 +78,7 @@ export default function JournalPage() {
       
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         
-        {/* --- COLONNE GAUCHE : ZONE D'ÉCRITURE (7 colonnes sur PC, 12 sur mobile) --- */}
+        {/* --- COLONNE GAUCHE : ZONE D'ÉCRITURE --- */}
         <div className="lg:col-span-7 space-y-6">
           
           <div className="bg-[#59647A] p-6 md:p-8 rounded-3xl border border-white/10 shadow-2xl">
@@ -118,14 +131,14 @@ export default function JournalPage() {
           </div>
         </div>
 
-        {/* --- COLONNE DROITE : HISTORIQUE (5 colonnes sur PC, 12 sur mobile) --- */}
+        {/* --- COLONNE DROITE : HISTORIQUE --- */}
         <div className="lg:col-span-5">
            <div className="bg-[#59647A]/30 backdrop-blur-md p-6 rounded-3xl border border-white/5 h-full max-h-[800px] flex flex-col">
              <h2 className="text-lg font-bold mb-6 flex items-center gap-2 text-[#EAE6DA]">
                <History size={20} className="text-[#4ECDC4]"/> Historique
              </h2>
              
-             {loading && <p className="text-center opacity-50">Chargement..</p>}
+             {loading && <p className="text-center opacity-50">Chargement...</p>}
              
              <div className="space-y-4 overflow-y-auto custom-scrollbar pr-2 flex-1">
                {history.map((entry) => {
@@ -133,7 +146,7 @@ export default function JournalPage() {
                  const MoodIcon = moodObj.icon;
                  
                  return (
-                   <div key={entry.id} className="bg-[#2F3A4A] p-5 rounded-2xl border border-white/5 hover:border-white/10 transition group shadow-sm">
+                   <div key={entry.id} className="bg-[#2F3A4A] p-5 rounded-2xl border border-white/5 hover:border-white/20 transition group shadow-sm">
                       <div className="flex justify-between items-start mb-3">
                          <div className="flex items-center gap-2">
                            <Calendar size={12} className="text-[#B0BCC9]"/>
