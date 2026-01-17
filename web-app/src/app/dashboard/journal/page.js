@@ -125,7 +125,7 @@ export default function JournalPage() {
                <History size={20} className="text-[#4ECDC4]"/> Historique
              </h2>
              
-             {loading && <p className="text-center opacity-50">Chargement...</p>}
+             {loading && <p className="text-center opacity-50">Chargement..</p>}
              
              <div className="space-y-4 overflow-y-auto custom-scrollbar pr-2 flex-1">
                {history.map((entry) => {
