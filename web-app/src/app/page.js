@@ -124,10 +124,7 @@ export default function LoginPage() {
              <div className="flex -space-x-3">
                {[1,2,3,4].map(i => <div key={i} className="w-10 h-10 rounded-full border-2 border-[#2F3A4A] bg-[#59647A]"/>)}
              </div>
-             <div className="flex flex-col text-left">
-               <span className="font-bold text-[#EAE6DA] flex items-center gap-1">2,000+ membres <CheckCircle size={14} className="text-[#4ECDC4]"/></span>
-               <span>nous font confiance.</span>
-             </div>
+            
           </div>
         </div>
 
