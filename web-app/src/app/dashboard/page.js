@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { 
   Users, BookOpen, Trophy, Activity, 
   AlertTriangle, MessageCircle, Calendar, Zap, Briefcase, 
-  DollarSign, ClipboardList, ChevronRight, RefreshCw 
+  DollarSign, ClipboardList, ChevronRight 
 } from 'lucide-react';
 
 export default function Dashboard() {
@@ -17,13 +17,15 @@ export default function Dashboard() {
   // ⚠️ URL API
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
+  // Est-ce Dimanche ?
+  const isSunday = new Date().getDay() === 0;
+
   useEffect(() => {
     const id = localStorage.getItem('userId');
     const name = localStorage.getItem('username');
     
     if (!id) { router.push('/'); return; }
-    
-    setUserName(name || 'Membre TAFUT');
+    setUserName(name || 'Membre TAFSUT');
 
     fetch(`${API_URL}/users/${id}/stats`, {
       headers: { 'ngrok-skip-browser-warning': 'true' }
@@ -66,8 +68,8 @@ export default function Dashboard() {
   return (
     <div className="max-w-6xl mx-auto animate-fade-in">
       
-      {/* --- EN-TÊTE --- */}
-      <header className="flex justify-between items-center mb-10">
+      {/* Header */}
+      <header className="flex justify-between items-center mb-8">
         <div>
           <h2 className="text-3xl font-bold text-[#EAE6DA]">Bonjour, {userName} 👋</h2>
           <p className="text-[#EAE6DA]/60 mt-1">
@@ -79,7 +81,23 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* --- VUE COACH --- */}
+      {/* RAPPEL DIMANCHE (Nouveau !) */}
+      {isSunday && userRole === 'USER' && (
+        <div className="mb-8 p-6 bg-gradient-to-r from-[#6C63FF] to-[#4ECDC4] rounded-2xl flex flex-col md:flex-row items-center justify-between shadow-xl animate-pulse-slow">
+          <div className="flex items-center gap-4 mb-4 md:mb-0">
+            <div className="p-3 bg-white/20 rounded-full"><Activity className="text-white" size={24} /></div>
+            <div>
+              <h3 className="text-white text-xl font-bold">C'est le moment du Bilan !</h3>
+              <p className="text-white/80">Analysez votre semaine pour mieux avancer.</p>
+            </div>
+          </div>
+          <button onClick={() => router.push('/dashboard/analysis')} className="bg-white text-[#2F3A4A] px-6 py-3 rounded-xl font-bold hover:bg-gray-100 transition shadow-lg">
+            Lancer l'IA
+          </button>
+        </div>
+      )}
+
+      {/* Vue Coach */}
       {userRole === 'COACH' ? (
         <>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
@@ -109,25 +127,18 @@ export default function Dashboard() {
           </div>
         </>
       ) : (
-        
-        /* --- VUE PATIENT --- */
+        /* Vue Patient */
         <>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
-            {/* Carte Jours */}
             <div className="lg:col-span-2 relative overflow-hidden rounded-2xl p-8 shadow-xl group bg-gradient-to-r from-[#6C63FF] to-[#4ECDC4]">
               <div className="relative z-10 flex flex-col justify-between h-full">
                 <div className="flex justify-between items-start">
-                  <div>
-                    <p className="text-white/80 text-sm font-bold uppercase tracking-wider mb-1">Jours de Lumière</p>
-                    <h3 className="text-7xl font-bold text-white tracking-tighter">{stats.days}</h3>
-                  </div>
+                  <div><p className="text-white/80 text-sm font-bold uppercase tracking-wider mb-1">Jours de Lumière</p><h3 className="text-7xl font-bold text-white tracking-tighter">{stats.days}</h3></div>
                   <div className="p-3 bg-white/20 backdrop-blur-md rounded-2xl"><Trophy size={32} className="text-white" /></div>
                 </div>
                 <div className="mt-8 flex items-center gap-3"><div className="h-1.5 flex-1 bg-black/20 rounded-full overflow-hidden"><div className="h-full bg-white w-3/4 rounded-full"></div></div><span className="text-xs font-bold text-white uppercase tracking-widest">Continuer ! 🔥</span></div>
               </div>
             </div>
-
-            {/* Carte Argent */}
             <div className="bg-[#59647A] p-6 rounded-2xl border border-white/5 shadow-lg flex flex-col justify-center items-center">
               <div className="p-4 bg-[#4ECDC4]/10 rounded-full mb-4 text-[#4ECDC4]"><DollarSign size={36} /></div>
               <h3 className="text-4xl font-bold text-[#EAE6DA] mb-1">{stats.money} €</h3>
@@ -135,7 +146,6 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Bandeau Succès */}
           <div className="mb-10 bg-[#59647A] border border-white/5 rounded-2xl p-6 flex items-center gap-6 overflow-hidden relative shadow-lg">
              <div className="min-w-fit flex items-center gap-2 text-[#FFD93D] font-bold border-r border-white/10 pr-6">
                <Trophy size={20} /> Succès
@@ -149,7 +159,6 @@ export default function Dashboard() {
              </div>
           </div>
 
-          {/* Accès Rapide (Desktop) */}
           <div className="hidden md:block">
             <h3 className="text-xl font-bold mb-4 text-[#EAE6DA] flex items-center gap-2"><Zap size={20}/> Accès Rapide</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -160,15 +169,8 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* --- BOUTON RECHUTE --- */}
-          <div className="mt-16 flex justify-center pb-8">
-            <button 
-              onClick={handleRelapse}
-              className="group flex items-center gap-3 px-6 py-3 rounded-full border border-[#FF6B6B]/20 text-[#FF6B6B]/70 hover:text-[#FF6B6B] hover:border-[#FF6B6B] hover:bg-[#FF6B6B]/5 transition-all duration-300"
-            >
-              <RefreshCw size={18} className="transition-transform duration-500 group-hover:rotate-180" />
-              <span className="font-medium tracking-wide text-sm">Déclarer une rechute (Nouveau départ)</span>
-            </button>
+          <div className="mt-12 text-center border-t border-white/5 pt-8 pb-8">
+            <button onClick={handleRelapse} className="text-[#FF6B6B]/60 hover:text-[#FF6B6B] text-sm underline transition">Déclarer une rechute (Remise à zéro)</button>
           </div>
         </>
       )}
