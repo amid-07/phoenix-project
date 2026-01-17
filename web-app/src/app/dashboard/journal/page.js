@@ -121,10 +121,10 @@ export default function JournalPage() {
             {/* Bouton */}
             <div className="mt-6 flex justify-end">
               <button 
-               className="umami--click--save-journal-entry ..."
+               
                 onClick={saveJournal}
                 disabled={!content.trim()}
-                className1="bg-[#EAE6DA] text-[#2F3A4A] px-8 py-3.5 rounded-xl font-bold hover:bg-white transition flex items-center gap-2 shadow-lg shadow-white/5 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-[#EAE6DA] text-[#2F3A4A] px-8 py-3.5 rounded-xl font-bold hover:bg-white transition flex items-center gap-2 shadow-lg shadow-white/5 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <CheckCircle size={18} /> Enregistrer
               </button>
