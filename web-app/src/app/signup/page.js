@@ -114,7 +114,7 @@ export default function SignupPage() {
                       : 'text-[#B0BCC9] hover:text-white'
                   }`}
                 >
-                  <User size={18} /> Patient
+                  <User size={18} /> User 
                 </button>
                 <button
                   type="button"

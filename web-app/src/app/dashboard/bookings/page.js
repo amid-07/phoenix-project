@@ -121,7 +121,7 @@ export default function BookingsPage() {
           <div className="bg-white text-[#2F3A4A] rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl p-6 relative" onClick={e => e.stopPropagation()}>
              <button onClick={() => setSelectedTicket(null)} className="absolute top-4 right-4 text-gray-400 hover:text-black"><X size={24}/></button>
              <div className="flex flex-col items-center text-center">
-                <h3 className="text-xl font-black tracking-widest text-[#2F3A4A] border-b-2 border-[#2F3A4A] pb-1 mb-4">E-BILLET TAFUT</h3>
+                <h3 className="text-xl font-black tracking-widest text-[#2F3A4A] border-b-2 border-[#2F3A4A] pb-1 mb-4">E-BILLET TAFSUT</h3>
                 <p className="text-xs text-gray-400 uppercase font-bold">Expert</p>
                 <p className="font-bold text-lg mb-3">{selectedTicket.coach.username}</p>
                 
