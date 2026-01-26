@@ -12,7 +12,7 @@ export class AiCoachService {
     this.genAI = new GoogleGenerativeAI(apiKey);
     
     // On utilise gemini-1.5-flash pour la rapidité et la stabilité (ou gemini-2.5-flash si disponible sur votre clé)
-    this.model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    this.model = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
   }
 
   // --- 1. CHAT TAFSUT COMPANION (Avec votre Prompt Avancé) ---
