@@ -11,11 +11,10 @@ export class AiCoachController {
   ) {}
 
   @Post('chat')
-  async chat(@Body() body: any) {
+  async chat(@Body('message') message: string) {
     try {
-      // body.history doit être envoyé par le frontend
-      return { text: await this.aiCoachService.getAdvice(body.message, body.history) };
-    } catch (e) { return { text: "Erreur IA" }; }
+      return { text: await this.aiCoachService.getAdvice(message) };
+    } catch (e) { return { text: "Erreur" }; }
   }
 
   @Get('challenge')

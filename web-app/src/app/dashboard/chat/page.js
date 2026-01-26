@@ -22,13 +22,6 @@ export default function ChatPage() {
     if (!input.trim()) return;
 
     const userMsg = { id: Date.now(), text: input, sender: 'user' };
-    
-    // On prépare l'historique pour l'IA (Format Gemini)
-    const historyForAI = messages.slice(-10).map(msg => ({
-      role: msg.sender === 'user' ? 'user' : 'model',
-      parts: [{ text: msg.text }]
-    }));
-
     setMessages(prev => [...prev, userMsg]);
     setInput('');
     setLoading(true);
@@ -38,20 +31,19 @@ export default function ChatPage() {
         method: 'POST',
         headers: { 
             'Content-Type': 'application/json',
-            'ngrok-skip-browser-warning': 'true'
+            // 👇 C'EST ÇA QUI MANQUAIT POUR LE MOBILE
+            'ngrok-skip-browser-warning': 'true' 
         },
-        body: JSON.stringify({ 
-            message: userMsg.text,
-            history: historyForAI
-        })
+        body: JSON.stringify({ message: userMsg.text })
       });
       
       const data = await response.json();
+      
       const aiMsg = { id: Date.now() + 1, text: data.text, sender: 'ai' };
       setMessages(prev => [...prev, aiMsg]);
     } catch (error) {
       console.error(error);
-      const errorMsg = { id: Date.now() + 1, text: "Erreur de connexion.", sender: 'ai' };
+      const errorMsg = { id: Date.now() + 1, text: "Erreur de connexion. Vérifiez votre réseau.", sender: 'ai' };
       setMessages(prev => [...prev, errorMsg]);
     } finally {
       setLoading(false);
@@ -59,7 +51,7 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-120px)] max-w-4xl mx-auto bg-[#2F3A4A] rounded-2xl shadow-2xl overflow-hidden border border-white/5">
+    <div className="flex flex-col h-[calc(100vh-100px)] max-w-4xl mx-auto bg-[#2F3A4A] rounded-2xl shadow-2xl overflow-hidden border border-white/5">
       
       {/* HEADER */}
       <div className="bg-[#59647A] p-4 flex items-center gap-4 border-b border-white/10 shadow-md z-10">
@@ -72,24 +64,22 @@ export default function ChatPage() {
         <div>
           <h2 className="font-bold text-xl text-[#EAE6DA]">TAFSUT Companion</h2>
           <p className="text-xs text-[#EAE6DA]/60 flex items-center gap-1">
-            <Sparkles size={12} className="text-[#FFD93D]"/> IA Thérapeutique
+            <Sparkles size={12} className="text-[#FFD93D]"/> IA Thérapeutique Active
           </p>
         </div>
       </div>
 
       {/* MESSAGES */}
-      <div className="flex-1 bg-[#252E3E] overflow-y-auto p-6 space-y-6 relative custom-scrollbar">
+      <div className="flex-1 bg-[#252E3E] overflow-y-auto p-6 space-y-6 relative">
         {messages.map((msg) => (
           <div key={msg.id} className={`flex w-full ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div className={`flex max-w-[80%] gap-3 ${msg.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-              
               <div className={`w-8 h-8 rounded-full flex shrink-0 items-center justify-center mt-auto ${msg.sender === 'user' ? 'bg-[#4ECDC4] text-[#2F3A4A]' : 'bg-[#EAE6DA] text-[#2F3A4A]'}`}>
                 {msg.sender === 'user' ? <User size={16}/> : <Bot size={16}/>}
               </div>
-
               <div className={`p-4 rounded-2xl shadow-md text-sm md:text-base leading-relaxed ${
                 msg.sender === 'user' 
-                  ? 'bg-[#4ECDC4] text-[#2F3A4A] rounded-br-none font-medium' 
+                  ? 'bg-[#4ECDC4] text-[#2F3A4A] rounded-br-none' 
                   : 'bg-[#59647A] text-[#EAE6DA] rounded-bl-none border border-white/5'
               }`}>
                 {msg.text}
@@ -97,7 +87,6 @@ export default function ChatPage() {
             </div>
           </div>
         ))}
-        
         {loading && (
           <div className="flex justify-start w-full">
              <div className="bg-[#59647A] p-3 rounded-2xl rounded-bl-none border border-white/5 flex items-center gap-2 ml-11">
