@@ -1,52 +1,67 @@
 import { Controller, Post, Get, Body, Param } from '@nestjs/common';
 import { AiCoachService } from './ai-coach.service';
-import { JournalService } from '../journal/journal.service';
+// Import du service Journal pour récupérer les données de la base
+import { JournalService } from '../journal/journal.service'; 
 
 @Controller('ai-coach')
 export class AiCoachController {
   
   constructor(
     private readonly aiCoachService: AiCoachService,
-    private readonly journalService: JournalService
+    private readonly journalService: JournalService // <--- Injection indispensable
   ) {}
 
+  // --- 1. CHAT (Avec Mémoire) ---
   @Post('chat')
-  async chat(@Body('message') message: string) {
+  async chat(@Body() body: any) {
     try {
-      return { text: await this.aiCoachService.getAdvice(message) };
-    } catch (e) { return { text: "Erreur" }; }
+      // On passe le message ET l'historique à l'IA
+      const response = await this.aiCoachService.getAdvice(body.message, body.history);
+      return { text: response };
+    } catch (e) {
+      console.error("Erreur Chat:", e);
+      return { text: "Désolé, je rencontre un problème technique." }; 
+    }
   }
 
+  // --- 2. DÉFI DU JOUR ---
   @Get('challenge')
   async getChallenge() {
     try {
-      return { text: await this.aiCoachService.getDailyChallenge() };
-    } catch (e) { return { text: "Erreur" }; }
+      const response = await this.aiCoachService.getDailyChallenge();
+      return { text: response };
+    } catch (e) {
+      return { text: "Prends 5 minutes pour respirer profondément." }; 
+    }
   }
 
-  // --- C'EST ICI QUE ÇA SE JOUE ---
+  // --- 3. ANALYSE HEBDOMADAIRE ---
   @Get('analysis/:userId')
   async getWeeklyAnalysis(@Param('userId') userId: string) {
-    console.log("🧠 Analyse structurée demandée pour :", userId);
+    console.log("🧠 Analyse demandée pour l'ID :", userId);
     
     try {
+      // A. Récupérer les journaux des 7 derniers jours
       const entries = await this.journalService.getWeeklyEntries(userId);
-      const rawJson = await this.aiCoachService.analyzeWeeklyJournal(entries);
+      console.log(`📚 ${entries.length} entrées trouvées.`);
+
+      // B. Générer l'analyse JSON avec l'IA
+      const analysisJson = await this.aiCoachService.analyzeWeeklyJournal(entries);
+      console.log("🤖 Analyse générée.");
       
-      // On parse le texte de l'IA pour en faire un vrai objet JavaScript
-      const analysisData = JSON.parse(rawJson);
-      
-      return analysisData; // On renvoie directement l'objet JSON
+      // On parse pour s'assurer que c'est bien du JSON avant d'envoyer
+      // (Si l'IA renvoie du texte brut par erreur, le try/catch l'attrapera)
+      return JSON.parse(analysisJson);
 
     } catch (error) {
       console.error("❌ Erreur Analyse :", error);
-      // En cas d'erreur, on renvoie des données par défaut
+      // Fallback en cas d'erreur pour ne pas faire planter l'app
       return {
         score: 50,
         stressLevel: 50,
         motivation: 50,
-        triggers: ["Analyse impossible"],
-        summary: "Veuillez réessayer plus tard."
+        triggers: ["Données insuffisantes"],
+        summary: "Impossible de générer le bilan pour le moment. Continuez à remplir votre journal."
       };
     }
   }

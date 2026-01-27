@@ -11,12 +11,14 @@ export class AiCoachService {
     const apiKey = this.configService.get<string>('GEMINI_API_KEY');
     this.genAI = new GoogleGenerativeAI(apiKey);
     
-    // On utilise le modèle expérimental 2.0 pour une meilleure compréhension du Darija et des nuances
+    // On utilise gemini-1.5-flash pour la rapidité et la stabilité (ou gemini-2.5-flash si disponible sur votre clé)
     this.model = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
   }
 
-  // --- CHAT TAFSUT COMPANION ---
-  async getAdvice(userMessage: string) {
+  // --- 1. CHAT TAFSUT COMPANION (Avec votre Prompt Avancé) ---
+  async getAdvice(userMessage: string, history: any[] = []) {
+    
+    // Configuration du Prompt Système (Votre texte exact)
     const systemPrompt = `
     ROLE:
     You are the TAFSUT Companion, a specialized AI assistant for addiction recovery and mental health in the MENA region.
@@ -36,29 +38,43 @@ export class AiCoachService {
 
     ✅ RESPONSE GUIDELINES:
     1. Statement-First Approach: When a user shares a feeling, give them a perspective, a fact, or a tool immediately. Do not ask them what they want.
+    * User: "I feel very angry today."
+    * Bad Response: "I understand you are angry. How can I help?"
+    * Good Response: "Anger is a huge trigger during recovery. It usually means you have excess energy that needs to get out. Try sprinting, doing pushups, or screaming into a pillow to release it safely."
     2. Questions Only When Necessary: You may only ask a question if you need specific information to give a better answer (e.g., clarifying a safety risk).
+    * Example: "To give you the right technique, are you feeling anxious or depressed right now?" (This is okay because it is specific).
     3. Legal Safe-Guarding (Meds/Drugs):
-       If a user asks for pills/meds: "I can't give medical advice or prescribe pills—that's for doctors. Check out the Experts Page to find a pro who can help."
+    * If a user asks for pills/meds:
+    * "I can't give medical advice or prescribe pills—that's for doctors. Check out the Psychotherapists Page to find a pro who can help."
     4. Scope Restriction (Off-Topic):
-       If a user asks for a recipe or general info: "I'm strictly here for your mental health. I can't help with that."
+    * If a user asks for a recipe:
+    * "I'm strictly here for your mental health. I can't help with that."
 
     ⚠️ CRISIS PROTOCOL:
     If the user indicates immediate self-harm, overdose, or a life-threatening emergency, bypass all conversational rules and immediately provide local emergency numbers (e.g., "Call 15 or 19 immediately").
-
-    USER INPUT:
-    "${userMessage}"
     `;
 
+    // Démarrage du chat avec l'historique
+    const chat = this.model.startChat({
+      history: history,
+      generationConfig: {
+        maxOutputTokens: 300, // Limite la longueur pour des réponses concises
+      },
+    });
+
     try {
-      const result = await this.model.generateContent(systemPrompt);
-      return (await result.response).text();
+      // On envoie le prompt système + le message utilisateur
+      // Note: On injecte le système prompt au début pour forcer le comportement
+      const result = await chat.sendMessage(systemPrompt + "\n\nUSER INPUT: " + userMessage);
+      const response = await result.response;
+      return response.text();
     } catch (error) {
       console.error("Erreur Gemini:", error);
-      return "Désolé, je suis un peu fatigué. Peux-tu répéter ?";
+      return "Désolé, je rencontre une difficulté technique. Peux-tu reformuler ?";
     }
   }
 
-  // --- DÉFI DU JOUR ---
+  // --- 2. DÉFI DU JOUR (Reste inchangé) ---
   async getDailyChallenge() {
     const prompt = `
       Génère un seul défi quotidien (max 20 mots) pour combattre l'addiction.
@@ -70,7 +86,7 @@ export class AiCoachService {
     return (await result.response).text();
   }
 
-  // --- ANALYSE HEBDOMADAIRE ---
+  // --- 3. ANALYSE HEBDOMADAIRE JSON (Reste inchangé pour le Bilan) ---
   async analyzeWeeklyJournal(journalEntries: any[]) {
     if (!journalEntries || journalEntries.length === 0) {
       return JSON.stringify({
@@ -104,6 +120,7 @@ export class AiCoachService {
 
     const result = await this.model.generateContent(prompt);
     let text = (await result.response).text();
+    // Nettoyage du JSON
     return text.replace(/```json/g, '').replace(/```/g, '').trim();
   }
 }
