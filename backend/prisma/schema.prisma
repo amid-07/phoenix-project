@@ -1,190 +1,136 @@
 generator client {
-  provider = "prisma-client-js"
+provider = "prisma-client-js"
 }
-
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+provider = "postgresql"
+url      = env("DATABASE_URL")
 }
-
 // --------------------------------------
 // 1. UTILISATEURS
 // --------------------------------------
-
 model User {
-  id             String    @id @default(uuid())
-  email          String    @unique
-  password       String
-  username       String?
-  
-  role           Role      @default(USER)
-  isVerified     Boolean   @default(true)
-
-  addictionType  AddictionType @default(SMOKING)
-  dailyCost      Float?
-  startDate      DateTime  @default(now())
-  moneySaved     Float     @default(0)
-  currentStreak  Int       @default(0)
-
-  // Relations
-  journals       Journal[]
-  dailyPlans     DailyPlan[]
-  badges         UserBadge[]
-  chatMessages   ChatMessage[] // <-- Ajouté pour l'historique IA
-  
-  professionalProfile ProfessionalProfile?
-  bookingsMade        Booking[]  @relation("PatientBookings")
-  bookingsReceived    Booking[]  @relation("CoachBookings")
-  writtenReviews      Review[]
-
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+id             String    @id @default(uuid())
+email          String    @unique
+password       String
+username       String?
+role           Role      @default(USER)
+isVerified     Boolean   @default(true) // True pour User, False pour Coach (par défaut)
+addictionType  AddictionType @default(SMOKING)
+dailyCost      Float?
+startDate      DateTime  @default(now())
+moneySaved     Float     @default(0)
+currentStreak  Int       @default(0)
+// Relations
+journals       Journal[]
+dailyPlans     DailyPlan[]
+badges         UserBadge[]
+professionalProfile ProfessionalProfile?
+bookingsMade        Booking[]  @relation("PatientBookings")
+bookingsReceived    Booking[]  @relation("CoachBookings")
+writtenReviews      Review[]
+createdAt      DateTime  @default(now())
+updatedAt      DateTime  @updatedAt
 }
-
 // --------------------------------------
-// 2. IA COACH & CHAT
+// 2. MARKETPLACE
 // --------------------------------------
-
-model ChatMessage {
-  id        String   @id @default(uuid())
-  content   String   @db.Text
-  role      String   // 'user' ou 'model'
-  createdAt DateTime @default(now())
-
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-// --------------------------------------
-// 3. JOURNAL & APP
-// --------------------------------------
-
-model Journal {
-  id        String   @id @default(uuid())
-  content   String
-  mood      Int
-  createdAt DateTime @default(now())
-  
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-}
-
-model DailyPlan {
-  id        String   @id @default(uuid())
-  date      DateTime @default(now())
-  tasks     Json
-  isCompleted Boolean @default(false)
-  
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-}
-
-// --------------------------------------
-// 4. BADGES & GAMIFICATION
-// --------------------------------------
-
-model Badge {
-  id           String      @id @default(uuid())
-  name         String
-  description  String
-  iconName     String
-  requiredDays Int
-  users        UserBadge[]
-}
-
-model UserBadge {
-  id        String   @id @default(uuid())
-  earnedAt  DateTime @default(now())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  badgeId   String
-  badge     Badge    @relation(fields: [badgeId], references: [id])
-}
-
-// --------------------------------------
-// 5. MARKETPLACE & EXPERTS
-// --------------------------------------
-
 model ProfessionalProfile {
-  id          String   @id @default(uuid())
-  title       String
-  bio         String
-  specialties String[]
-  hourlyRate  Float
-  rating      Float    @default(5.0)
-  address     String?
-
-  userId      String   @unique
-  user        User     @relation(fields: [userId], references: [id])
-
-  availabilities Availability[]
-  reviews        Review[]
+id          String   @id @default(uuid())
+title       String
+bio         String
+specialties String[]
+hourlyRate  Float
+rating      Float    @default(5.0)
+address     String?
+userId      String   @unique
+user        User     @relation(fields: [userId], references: [id])
+availabilities Availability[]
+reviews        Review[]
 }
-
 model Availability {
-  id        String      @id @default(uuid())
-  date      DateTime
-  isBooked  Boolean     @default(false)
-  type      SessionType @default(REMOTE)
-  
-  profileId String
-  profile   ProfessionalProfile @relation(fields: [profileId], references: [id])
+id        String      @id @default(uuid())
+date      DateTime
+isBooked  Boolean     @default(false)
+type      SessionType @default(REMOTE)
+profileId String
+profile   ProfessionalProfile @relation(fields: [profileId], references: [id])
 }
-
 model Review {
-  id        String   @id @default(uuid())
-  rating    Int
-  comment   String
-  createdAt DateTime @default(now())
-
-  profileId String
-  profile   ProfessionalProfile @relation(fields: [profileId], references: [id])
-
-  authorId  String
-  author    User     @relation(fields: [authorId], references: [id])
+id        String   @id @default(uuid())
+rating    Int
+comment   String
+createdAt DateTime @default(now())
+profileId String
+profile   ProfessionalProfile @relation(fields: [profileId], references: [id])
+authorId  String
+author    User     @relation(fields: [authorId], references: [id])
 }
-
 model Booking {
-  id        String      @id @default(uuid())
-  date      DateTime
-  status    String      @default("PENDING")
-  type      SessionType @default(REMOTE)
-
-  patientId String
-  patient   User     @relation("PatientBookings", fields: [patientId], references: [id])
-  
-  coachId   String
-  coach     User     @relation("CoachBookings", fields: [coachId], references: [id])
-
-  createdAt DateTime @default(now())
+id        String      @id @default(uuid())
+date      DateTime
+status    String      @default("PENDING")
+type      SessionType @default(REMOTE)
+patientId String
+patient   User     @relation("PatientBookings", fields: [patientId], references: [id])
+coachId   String
+coach     User     @relation("CoachBookings", fields: [coachId], references: [id])
+createdAt DateTime @default(now())
 }
-
+// --------------------------------------
+// 3. APP
+// --------------------------------------
+model Journal {
+id        String   @id @default(uuid())
+content   String
+mood      Int
+createdAt DateTime @default(now())
+userId    String
+user      User     @relation(fields: [userId], references: [id])
+}
+model DailyPlan {
+id        String   @id @default(uuid())
+date      DateTime @default(now())
+tasks     Json
+isCompleted Boolean @default(false)
+userId    String
+user      User     @relation(fields: [userId], references: [id])
+}
+model Badge {
+id          String      @id @default(uuid())
+name        String
+description String
+iconName    String
+requiredDays Int
+users       UserBadge[]
+}
+model UserBadge {
+id        String   @id @default(uuid())
+earnedAt  DateTime @default(now())
+userId    String
+user      User     @relation(fields: [userId], references: [id])
+badgeId   String
+badge     Badge    @relation(fields: [badgeId], references: [id])
+}
 model Waitlist {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  createdAt DateTime @default(now())
+id        String   @id @default(uuid())
+email     String   @unique
+createdAt DateTime @default(now())
 }
-
-// --------------------------------------
 // ENUMS
-// --------------------------------------
-
 enum Role {
-  USER
-  COACH
-  ADMIN
+USER
+COACH
+ADMIN
 }
-
 enum AddictionType {
-  GAMBLING
-  DRUGS
-  ALCOHOL
-  PHONE
-  SMOKING
-  OTHER
+GAMBLING
+DRUGS
+ALCOHOL
+PHONE
+SMOKING
+OTHER
 }
-
 enum SessionType {
-  REMOTE
-  IN_PERSON
+REMOTE
+IN_PERSON
 }
