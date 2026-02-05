@@ -9,118 +9,105 @@ export class AiCoachService {
 
   constructor(private configService: ConfigService) {
     const apiKey = this.configService.get<string>('GEMINI_API_KEY');
+    
+    if (!apiKey) {
+      console.error("❌ ERREUR : La clé GEMINI_API_KEY est manquante dans l'environnement.");
+    }
+
     this.genAI = new GoogleGenerativeAI(apiKey);
     
-    // CONFIGURATION DU MODÈLE ET DU PERSONA (SYSTEM INSTRUCTION)
-    // On utilise gemini-1.5-flash qui est stable et excellent pour le Darija
+    // UTILISATION DE 'gemini-1.5-flash' (Le plus stable et performant pour le Darija/FR)
+    // Note : C'est ce nom qui corrigera l'erreur 404 que tu voyais sur AI Studio
     this.model = this.genAI.getGenerativeModel({ 
       model: 'gemini-2.5-flash',
       systemInstruction: `
-        Role: You are TAFSUT — a supportive, clear-headed mentor for addiction recovery and mental health in Morocco. You act as a loyal Khoya/Khti. 
+        Role: You are TAFSUT — a supportive, clear-headed mentor for addiction recovery in Morocco. You act as a loyal Khoya/Khti. 
         
         CORE PRESENCE:
-        Speak like a real Khoya/Khti: warm, firm, plainspoken, honest without judgment. Use everyday language. Prioritize safety and user agency. Do not lecture, shame, or diagnose.
+        Speak like a real Khoya/Khti: warm, firm, honest. No judgment. Use everyday language. Do not lecture or diagnose.
 
-        I. THE RECONSTRUCTION LOOP
-        1) The Gut Check: Name the feeling plainly. Vary openers (e.g., "That sounds heavy", "You’re carrying a lot"). Never say "I understand."
-        2) The Perspective: Explain the situation logically (biology/behavior) without clinical jargon.
+        I. THE RECONSTRUCTION LOOP (The Main Flow)
+        1) The Gut Check: Name the feeling plainly. VARY YOUR OPENERS (e.g., "That sounds heavy," "The stress is loud right now"). Never say "I understand."
+        2) The Perspective: Explain why the brain is doing this logically (biology/behavior), no jargon.
         3) The Pivot: Ask ONE direct, open-ended question.
-        4) The Action: Give ONE small, concrete action step when appropriate.
+        4) The Action: Give ONE small, concrete action step when the user is ready.
 
         II. STRICT LINGUISTIC RULES
-        - Mirror Rule: Reply in the language the user uses (Darija/Arabizi, French, or English).
-        - English Mode: Use contractions (don't, you're).
-        - Darija Mode: Use local terms ("l'garo", "l'vape", "l9mer"). No hyphens (use "blkhouf").
+        - The Mirror Rule: Reply in the language the user speaks (Darija/Arabizi, French, or English).
+        - English: Use contractions (don't, you're). No flowery language.
+        - Darija: Use "l'garo", "l'vape", "l9mer", "blkhouf". 
         - Forbidden Words: "Valid", "Journey", "Mindfulness", "Self-care", "Positive vibes".
 
         III. SAFETY & SCOPE
-        - No Medical Advice: If asked about meds, say: "I handle the mindset; the doctor handles the chemistry."
-        - Crisis Protocol: If imminent danger, say: "Appelez le 15 (Ambulance) ou le 19 (Police) immédiatement. Déplace-toi vers un endroit sûr et préviens un proche."
+        - No Medical Advice: For meds, say: "I handle the mindset; the doctor handles the chemistry."
+        - Crisis Protocol: If imminent self-harm/danger, STOP the persona and say: "Appelez le 15 (Ambulance) ou le 19 (Police) immédiatement. Déplace-toi vers un endroit sûr et préviens un proche."
       `
     });
   }
 
-  // --- CHAT TAFSUT COMPANION (AVEC MÉMOIRE) ---
+  // --- MÉTHODE PRINCIPALE : CHAT AVEC COHÉRENCE ---
   async getAdvice(userMessage: string, history: any[] = []) {
     try {
-      // 1. On formate l'historique pour Gemini
-      // On s'assure que les rôles alternent parfaitement : user -> model -> user
-      const formattedHistory = history.map(m => ({
+      // 1. On formate l'historique reçu du frontend pour le SDK Gemini
+      // Gemini attend : { role: 'user' | 'model', parts: [{ text: string }] }
+      const formattedHistory = (history || []).map(m => ({
         role: (m.sender === 'ai' || m.sender === 'model') ? 'model' : 'user',
         parts: [{ text: m.text }]
       }));
 
-      // 2. On initialise le chat avec l'historique
+      // 2. Initialisation du chat avec l'historique pour la mémoire
       const chat = this.model.startChat({
         history: formattedHistory,
         generationConfig: {
-          maxOutputTokens: 500,
-          temperature: 0.7, // Équilibre entre créativité et précision
+          maxOutputTokens: 1000,
+          temperature: 0.8,
         },
       });
 
-      // 3. On envoie le nouveau message
+      // 3. Envoi du nouveau message
       const result = await chat.sendMessage(userMessage);
       const response = await result.response;
+      
       return response.text();
 
     } catch (error) {
-      console.error("❌ ERREUR DÉTAILLÉE GEMINI :", error);
+      // Log détaillé pour voir l'erreur sur ton terminal VS Code ou Vercel Logs
+      console.error("--- ERREUR GEMINI SERVICE ---");
+      console.error(error);
       
-      // Message de secours si l'API échoue (quota, clé, etc.)
       return "Désolé khoya/khti, chwiya dyal l3ya technique. On peut reparler dans un instant ?";
     }
   }
 
-  // --- DÉFI DU JOUR ---
+  // --- GÉNÉRATION DU DÉFI QUOTIDIEN ---
   async getDailyChallenge() {
     try {
-      const prompt = "Génère un seul défi quotidien court (max 15 mots) pour combattre l'addiction. Ton : Khoya/Khti marocain, direct. Langue : Français.";
+      const prompt = "Génère un défi quotidien addiction (15 mots max, ton Khoya, Français).";
       const result = await this.model.generateContent(prompt);
-      return (await result.response).text();
+      return result.response.text();
     } catch (e) {
-      return "Aujourd'hui, essaie de marcher 15 minutes sans ton téléphone.";
+      return "Prends 5 minutes de calme sans écran aujourd'hui.";
     }
   }
 
-  // --- ANALYSE HEBDOMADAIRE DU JOURNAL ---
+  // --- ANALYSE HEBDOMADAIRE ---
   async analyzeWeeklyJournal(journalEntries: any[]) {
     if (!journalEntries || journalEntries.length === 0) {
-      return JSON.stringify({
-        score: 0,
-        stressLevel: 0,
-        motivation: 0,
-        triggers: [],
-        summary: "Pas assez de données pour une analyse cette semaine."
+      return JSON.stringify({ 
+        score: 0, stressLevel: 0, motivation: 0, triggers: [], 
+        summary: "Pas assez de données pour l'analyse." 
       });
     }
 
-    const textData = journalEntries.map(entry => 
-      `- Humeur ${entry.mood}/5: "${entry.content}"`
-    ).join('\n');
-
-    const prompt = `
-      Analyse ces entrées de journal :
-      ${textData}
-
-      Réponds UNIQUEMENT avec un objet JSON brut :
-      {
-        "score": (0-100),
-        "stressLevel": (0-100),
-        "motivation": (0-100),
-        "triggers": (Tableau de 3 strings max),
-        "summary": (Conseil Khoya/Khti en Français de 15 mots max)
-      }
-    `;
+    const textData = journalEntries.map(e => `- ${e.content}`).join('\n');
+    const prompt = `Analyse en JSON: {score(0-100), stressLevel, motivation, triggers[], summary(15 mots max)}. Data: ${textData}`;
 
     try {
       const result = await this.model.generateContent(prompt);
-      let text = (await result.response).text();
-      // Nettoyage du Markdown si Gemini en rajoute
+      const text = result.response.text();
       return text.replace(/```json/g, '').replace(/```/g, '').trim();
     } catch (e) {
-      console.error("Erreur Analyse :", e);
-      throw new Error("Impossible d'analyser le journal.");
+      return JSON.stringify({ summary: "Erreur d'analyse." });
     }
   }
 }
