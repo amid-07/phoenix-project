@@ -32,16 +32,17 @@ export class AiCoachService {
     });
   }
 
-  async getAdvice(userMessage: string, history: any[] = []) {
+  async getAdvice(message: string, history: any[]) {
     try {
-      // On formate l'historique pour le SDK Gemini
-      // Format attendu: { role: 'user' | 'model', parts: [{ text: string }] }
-      const formattedHistory = history.map(msg => ({
-        role: msg.sender === 'user' ? 'user' : 'model',
-        parts: [{ text: msg.text }]
+      // Correction ici : On s'assure que le rôle est exactement ce que Gemini attend
+      const formattedHistory = history.map(m => ({
+        // Si le frontend envoie 'model' ou 'ai', on met 'model', sinon 'user'
+        role: (m.sender === 'model' || m.sender === 'ai') ? 'model' : 'user',
+        parts: [{ text: m.text }]
       }));
-
-      // On initialise le chat avec l'historique
+  
+      console.log("DEBUG HISTORY:", JSON.stringify(formattedHistory)); // Pour vérifier dans tes logs
+  
       const chat = this.model.startChat({
         history: formattedHistory,
         generationConfig: {
@@ -49,13 +50,14 @@ export class AiCoachService {
           temperature: 0.7,
         },
       });
-
-      const result = await chat.sendMessage(userMessage);
+  
+      const result = await chat.sendMessage(message);
       const response = await result.response;
       return response.text();
-
+  
     } catch (error) {
-      console.error("Erreur Gemini Chat:", error);
+      // Affiche l'erreur réelle dans ton terminal VS Code pour débugger
+      console.error("ERREUR RÉELLE GEMINI:", error); 
       return "Désolé khoya/khti, j'ai un petit souci technique. On peut reparler dans un instant ?";
     }
   }
