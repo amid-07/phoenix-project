@@ -4,13 +4,12 @@ import { Send, Bot, User, RefreshCw, Sparkles } from 'lucide-react';
 
 export default function ChatPage() {
   const [messages, setMessages] = useState([
-    { id: 1, text: "Salam ! Je suis TAFSUT Companion. Raconte-moi ce qui se passe.", sender: 'ai' }
+    { id: 1, text: "Salam, je suis Tafsut. Je suis là si tu as besoin de parler ou de reconstruire quelque chose. Je t'écoute.", sender: 'ai' }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
 
-  // ⚠️ URL API
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
   useEffect(() => {
@@ -19,9 +18,17 @@ export default function ChatPage() {
 
   const sendMessage = async (e) => {
     e.preventDefault();
-    if (!input.trim()) return;
+    if (!input.trim() || loading) return;
 
-    const userMsg = { id: Date.now(), text: input, sender: 'user' };
+    const userMsgText = input;
+    const userMsg = { id: Date.now(), text: userMsgText, sender: 'user' };
+    
+    // 1. Sauvegarder l'historique ACTUEL (avant d'ajouter le nouveau message)
+    const historyToSend = messages.map(m => ({
+      text: m.text,
+      sender: m.sender === 'ai' ? 'model' : 'user'
+    }));
+
     setMessages(prev => [...prev, userMsg]);
     setInput('');
     setLoading(true);
@@ -31,20 +38,22 @@ export default function ChatPage() {
         method: 'POST',
         headers: { 
             'Content-Type': 'application/json',
-            // 👇 C'EST ÇA QUI MANQUAIT POUR LE MOBILE
             'ngrok-skip-browser-warning': 'true' 
         },
-        body: JSON.stringify({ message: userMsg.text })
+        // 2. Envoyer le message ET l'historique
+        body: JSON.stringify({ 
+          message: userMsgText,
+          history: historyToSend 
+        })
       });
       
       const data = await response.json();
-      
       const aiMsg = { id: Date.now() + 1, text: data.text, sender: 'ai' };
       setMessages(prev => [...prev, aiMsg]);
+
     } catch (error) {
       console.error(error);
-      const errorMsg = { id: Date.now() + 1, text: "Erreur de connexion. Vérifiez votre réseau.", sender: 'ai' };
-      setMessages(prev => [...prev, errorMsg]);
+      setMessages(prev => [...prev, { id: Date.now() + 1, text: "Problème de connexion, vérifie ton réseau khoya/khti.", sender: 'ai' }]);
     } finally {
       setLoading(false);
     }
@@ -52,11 +61,10 @@ export default function ChatPage() {
 
   return (
     <div className="flex flex-col h-[calc(100vh-100px)] max-w-4xl mx-auto bg-[#2F3A4A] rounded-2xl shadow-2xl overflow-hidden border border-white/5">
-      
       {/* HEADER */}
-      <div className="bg-[#59647A] p-4 flex items-center gap-4 border-b border-white/10 shadow-md z-10">
+      <div className="bg-[#59647A] p-4 flex items-center gap-4 border-b border-white/10 shadow-md">
         <div className="relative">
-           <div className="w-12 h-12 bg-[#EAE6DA] rounded-full flex items-center justify-center text-[#2F3A4A] shadow-inner">
+           <div className="w-12 h-12 bg-[#EAE6DA] rounded-full flex items-center justify-center text-[#2F3A4A]">
              <Bot size={28} />
            </div>
            <span className="absolute bottom-0 right-0 w-3 h-3 bg-[#4ECDC4] border-2 border-[#59647A] rounded-full animate-pulse"></span>
@@ -70,14 +78,14 @@ export default function ChatPage() {
       </div>
 
       {/* MESSAGES */}
-      <div className="flex-1 bg-[#252E3E] overflow-y-auto p-6 space-y-6 relative">
+      <div className="flex-1 bg-[#252E3E] overflow-y-auto p-6 space-y-6">
         {messages.map((msg) => (
           <div key={msg.id} className={`flex w-full ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div className={`flex max-w-[80%] gap-3 ${msg.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
               <div className={`w-8 h-8 rounded-full flex shrink-0 items-center justify-center mt-auto ${msg.sender === 'user' ? 'bg-[#4ECDC4] text-[#2F3A4A]' : 'bg-[#EAE6DA] text-[#2F3A4A]'}`}>
                 {msg.sender === 'user' ? <User size={16}/> : <Bot size={16}/>}
               </div>
-              <div className={`p-4 rounded-2xl shadow-md text-sm md:text-base leading-relaxed ${
+              <div className={`p-4 rounded-2xl text-sm md:text-base ${
                 msg.sender === 'user' 
                   ? 'bg-[#4ECDC4] text-[#2F3A4A] rounded-br-none' 
                   : 'bg-[#59647A] text-[#EAE6DA] rounded-bl-none border border-white/5'
@@ -88,8 +96,8 @@ export default function ChatPage() {
           </div>
         ))}
         {loading && (
-          <div className="flex justify-start w-full">
-             <div className="bg-[#59647A] p-3 rounded-2xl rounded-bl-none border border-white/5 flex items-center gap-2 ml-11">
+          <div className="flex justify-start ml-11">
+             <div className="bg-[#59647A] p-3 rounded-2xl rounded-bl-none flex items-center gap-2">
                 <span className="w-2 h-2 bg-[#EAE6DA]/50 rounded-full animate-bounce"></span>
                 <span className="w-2 h-2 bg-[#EAE6DA]/50 rounded-full animate-bounce delay-75"></span>
                 <span className="w-2 h-2 bg-[#EAE6DA]/50 rounded-full animate-bounce delay-150"></span>
@@ -107,15 +115,14 @@ export default function ChatPage() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Écrivez votre message..."
-            className="w-full bg-[#1E1E2E] text-[#EAE6DA] pl-6 pr-14 py-4 rounded-full border border-white/10 focus:outline-none focus:border-[#4ECDC4] focus:ring-1 focus:ring-[#4ECDC4] placeholder-[#EAE6DA]/30 shadow-inner transition-all"
+            className="w-full bg-[#1E1E2E] text-[#EAE6DA] pl-6 pr-14 py-4 rounded-full border border-white/10 focus:outline-none focus:border-[#4ECDC4]"
           />
           <button 
             type="submit" 
             disabled={loading || !input.trim()} 
-            className="absolute right-2 p-2.5 bg-[#EAE6DA] text-[#2F3A4A] rounded-full hover:bg-[#4ECDC4] transition disabled:opacity-50 disabled:hover:bg-[#EAE6DA]"
+            className="absolute right-2 p-2.5 bg-[#EAE6DA] text-[#2F3A4A] rounded-full hover:bg-[#4ECDC4] transition disabled:opacity-50"
           >
-            <Send size={20} className={loading ? 'opacity-0' : 'opacity-100'} />
-            {loading && <RefreshCw size={20} className="absolute animate-spin"/>}
+            {!loading ? <Send size={20} /> : <RefreshCw size={20} className="animate-spin"/>}
           </button>
         </div>
       </form>

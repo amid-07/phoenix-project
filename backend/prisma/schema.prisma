@@ -18,7 +18,7 @@ model User {
   username       String?
   
   role           Role      @default(USER)
-  isVerified     Boolean   @default(true) // True pour User, False pour Coach (par défaut)
+  isVerified     Boolean   @default(true)
 
   addictionType  AddictionType @default(SMOKING)
   dailyCost      Float?
@@ -30,6 +30,7 @@ model User {
   journals       Journal[]
   dailyPlans     DailyPlan[]
   badges         UserBadge[]
+  chatMessages   ChatMessage[] // <-- Ajouté pour l'historique IA
   
   professionalProfile ProfessionalProfile?
   bookingsMade        Booking[]  @relation("PatientBookings")
@@ -41,7 +42,67 @@ model User {
 }
 
 // --------------------------------------
-// 2. MARKETPLACE
+// 2. IA COACH & CHAT
+// --------------------------------------
+
+model ChatMessage {
+  id        String   @id @default(uuid())
+  content   String   @db.Text
+  role      String   // 'user' ou 'model'
+  createdAt DateTime @default(now())
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// --------------------------------------
+// 3. JOURNAL & APP
+// --------------------------------------
+
+model Journal {
+  id        String   @id @default(uuid())
+  content   String
+  mood      Int
+  createdAt DateTime @default(now())
+  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model DailyPlan {
+  id        String   @id @default(uuid())
+  date      DateTime @default(now())
+  tasks     Json
+  isCompleted Boolean @default(false)
+  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+// --------------------------------------
+// 4. BADGES & GAMIFICATION
+// --------------------------------------
+
+model Badge {
+  id           String      @id @default(uuid())
+  name         String
+  description  String
+  iconName     String
+  requiredDays Int
+  users        UserBadge[]
+}
+
+model UserBadge {
+  id        String   @id @default(uuid())
+  earnedAt  DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  badgeId   String
+  badge     Badge    @relation(fields: [badgeId], references: [id])
+}
+
+// --------------------------------------
+// 5. MARKETPLACE & EXPERTS
 // --------------------------------------
 
 model ProfessionalProfile {
@@ -98,55 +159,16 @@ model Booking {
   createdAt DateTime @default(now())
 }
 
-// --------------------------------------
-// 3. APP
-// --------------------------------------
-
-model Journal {
-  id        String   @id @default(uuid())
-  content   String
-  mood      Int
-  createdAt DateTime @default(now())
-  
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-}
-
-model DailyPlan {
-  id        String   @id @default(uuid())
-  date      DateTime @default(now())
-  tasks     Json
-  isCompleted Boolean @default(false)
-  
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-}
-
-model Badge {
-  id          String      @id @default(uuid())
-  name        String
-  description String
-  iconName    String
-  requiredDays Int
-  users       UserBadge[]
-}
-
-model UserBadge {
-  id        String   @id @default(uuid())
-  earnedAt  DateTime @default(now())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  badgeId   String
-  badge     Badge    @relation(fields: [badgeId], references: [id])
-}
-
 model Waitlist {
   id        String   @id @default(uuid())
   email     String   @unique
   createdAt DateTime @default(now())
 }
 
+// --------------------------------------
 // ENUMS
+// --------------------------------------
+
 enum Role {
   USER
   COACH
