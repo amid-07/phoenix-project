@@ -11,20 +11,26 @@ export class AiCoachController {
   ) {}
 
   @Post('chat')
-  async chat(@Body('message') message: string) {
+  async chat(@Body() body: { message: string, history?: any[] }) {
     try {
-      return { text: await this.aiCoachService.getAdvice(message) };
-    } catch (e) { return { text: "Erreur" }; }
+      // On passe le message et l'historique (si présent) pour la mémoire de TAFSUT
+      const response = await this.aiCoachService.getAdvice(body.message, body.history || []);
+      return { text: response };
+    } catch (e) { 
+      console.error("Erreur Chat:", e);
+      return { text: "Désolé, j'ai un petit bug. On peut reprendre ?" }; 
+    }
   }
 
   @Get('challenge')
   async getChallenge() {
     try {
       return { text: await this.aiCoachService.getDailyChallenge() };
-    } catch (e) { return { text: "Erreur" }; }
+    } catch (e) { 
+      return { text: "Prends 5 minutes pour respirer profondément aujourd'hui." }; 
+    }
   }
 
-  // --- C'EST ICI QUE ÇA SE JOUE ---
   @Get('analysis/:userId')
   async getWeeklyAnalysis(@Param('userId') userId: string) {
     console.log("🧠 Analyse structurée demandée pour :", userId);
@@ -35,18 +41,16 @@ export class AiCoachController {
       
       // On parse le texte de l'IA pour en faire un vrai objet JavaScript
       const analysisData = JSON.parse(rawJson);
-      
-      return analysisData; // On renvoie directement l'objet JSON
+      return analysisData;
 
     } catch (error) {
       console.error("❌ Erreur Analyse :", error);
-      // En cas d'erreur, on renvoie des données par défaut
       return {
         score: 50,
         stressLevel: 50,
         motivation: 50,
-        triggers: ["Analyse impossible"],
-        summary: "Veuillez réessayer plus tard."
+        triggers: ["Analyse indisponible"],
+        summary: "Continue d'écrire, je ferai le point avec toi très bientôt."
       };
     }
   }
