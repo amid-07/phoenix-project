@@ -13,7 +13,7 @@ export class AiCoachService {
     
     // Utilisation de gemini-1.5-flash (plus rapide et efficace pour le chat)
     // Note: gemini-2.0-flash est aussi une option si disponible dans votre région
-    this.model = this.genAI.getGenerativeModel({ model: 'gemini-3-flash' });
+    this.model = this.genAI.getGenerativeModel({ model: 'gemini-3-pro-preview' });
   }
 
   // --- CHAT TAFSUT COMPANION ---
